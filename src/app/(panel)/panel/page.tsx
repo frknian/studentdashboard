@@ -18,6 +18,7 @@ import {
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, ProgressBar, SectionTitle, Badge } from "@/components/ui";
 import PostLessonModal from "@/components/PostLessonModal";
@@ -92,9 +93,21 @@ function StudentDashboard() {
   return (
     <div>
       <header className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-slate-500">Merhaba,</p>
-          <h1 className="text-xl font-bold">{profile.displayName}</h1>
+        <div className="flex items-center gap-3">
+          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-xs ring-1 ring-slate-200">
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={44}
+              height={44}
+              className="h-full w-full object-cover"
+              priority
+            />
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Merhaba,</p>
+            <h1 className="text-xl font-bold">{profile.displayName}</h1>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1.5 text-sm font-bold text-orange-600 dark:bg-orange-900/40 dark:text-orange-300">
@@ -405,9 +418,21 @@ function TeacherDashboard() {
   return (
     <div>
       <header className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-slate-500">Hoş geldiniz,</p>
-          <h1 className="text-xl font-bold">{profile.displayName}</h1>
+        <div className="flex items-center gap-3">
+          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-xs ring-1 ring-slate-200">
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={44}
+              height={44}
+              className="h-full w-full object-cover"
+              priority
+            />
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Hoş geldiniz,</p>
+            <h1 className="text-xl font-bold">{profile.displayName}</h1>
+          </div>
         </div>
         <Link href="/panel/ayarlar" className="text-slate-400" aria-label="Ayarlar">
           <Settings size={20} />

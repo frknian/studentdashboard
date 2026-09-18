@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="./public/logo.png" alt="StudentDashboard Logo" width="140" style="border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" />
+
 # 🎓 StudentDashboard (Öğrenci Takip & Koçluk Platformu)
 
 **Özel ders öğretmenleri, öğrenciler ve veliler için yeni nesil, mobil öncelikli (PWA) takip, koçluk ve yönetim sistemi.**

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import {
   BookOpen,
@@ -132,8 +133,15 @@ export default function ParentPage() {
     <div className="mx-auto min-h-dvh max-w-lg bg-slate-50 px-4 py-6">
       <header className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-sm">
-            <GraduationCap size={26} />
+          <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl shadow-sm ring-1 ring-slate-200">
+            <Image
+              src="/logo.png"
+              alt="Öğrenci Takip Logo"
+              width={48}
+              height={48}
+              className="h-full w-full object-cover"
+              priority
+            />
           </div>
           <div>
             <p className="text-xs text-slate-500">Veli Bilgilendirme Ekranı</p>

@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { GraduationCap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import KvkkModal from "@/components/KvkkModal";
@@ -84,11 +85,21 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-6 py-10">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex flex-col items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 text-white">
-            <GraduationCap size={30} />
+        <div className="mb-6 flex flex-col items-center gap-3 text-center">
+          <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl shadow-md ring-1 ring-slate-200">
+            <Image
+              src="/logo.png"
+              alt="Öğrenci Takip Logo"
+              width={64}
+              height={64}
+              className="h-full w-full object-cover"
+              priority
+            />
           </div>
-          <h1 className="text-xl font-bold">Kayıt Ol</h1>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-800">Kayıt Ol</h1>
+            <p className="mt-0.5 text-xs text-slate-500">Öğretmen veya Öğrenci Hesabı Oluşturun</p>
+          </div>
         </div>
 
         <div className="mb-4 grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
