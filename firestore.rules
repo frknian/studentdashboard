@@ -1,0 +1,141 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function myProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isTeacher() {
+      return signedIn() && myProfile().role == 'TEACHER';
+    }
+
+    match /users/{userId} {
+      allow get: if signedIn()
+        && (request.auth.uid == userId
+            || resource.data.teacherId == request.auth.uid
+            || isTeacher());
+      allow list: if isTeacher();
+      allow create: if signedIn() && request.auth.uid == userId;
+      allow update: if signedIn()
+        && (request.auth.uid == userId
+            || (isTeacher() && resource.data.teacherId == request.auth.uid));
+      allow delete: if false;
+    }
+
+    match /lessons/{lessonId} {
+      allow read: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            || request.auth.uid == resource.data.studentId);
+      allow create: if isTeacher()
+        && request.resource.data.teacherId == request.auth.uid;
+      allow update: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            // Öğrenci yalnızca ders onayı / saat teklifi yapabilir
+            || (request.auth.uid == resource.data.studentId
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'proposedTime'])));
+      allow delete: if isTeacher() && request.auth.uid == resource.data.teacherId;
+    }
+
+    match /tasks/{taskId} {
+      allow read: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            || request.auth.uid == resource.data.studentId);
+      allow create: if isTeacher()
+        && request.resource.data.teacherId == request.auth.uid;
+      allow update: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            // Öğrenci yalnızca ilerleme ve tamamlama alanlarını değiştirebilir
+            || (request.auth.uid == resource.data.studentId
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['completedQuestions', 'isCompleted', 'feedback'])));
+      allow delete: if isTeacher() && request.auth.uid == resource.data.teacherId;
+    }
+
+    match /questions/{questionId} {
+      allow read: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            || request.auth.uid == resource.data.studentId);
+      allow create: if signedIn()
+        && request.auth.uid == request.resource.data.studentId;
+      // Yalnızca durum (OPEN/RESOLVED) değiştirilebilir
+      allow update: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            || request.auth.uid == resource.data.studentId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+      allow delete: if isTeacher() && request.auth.uid == resource.data.teacherId;
+    }
+
+    match /plans/{planId} {
+      allow read: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            || request.auth.uid == resource.data.studentId);
+      allow create: if isTeacher()
+        && request.resource.data.teacherId == request.auth.uid;
+      // Öğrenci yalnızca tamamlama alanlarını değiştirebilir
+      allow update: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            || (request.auth.uid == resource.data.studentId
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['isCompleted', 'solvedQuestions', 'studentNote', 'completedAt'])));
+      allow delete: if isTeacher() && request.auth.uid == resource.data.teacherId;
+    }
+
+    match /question_logs/{logId} {
+      allow read: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            || request.auth.uid == resource.data.studentId);
+      allow create: if signedIn()
+        && (request.auth.uid == request.resource.data.studentId
+            || request.auth.uid == request.resource.data.teacherId);
+      allow update, delete: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            || request.auth.uid == resource.data.studentId);
+    }
+
+    match /notes/{noteId} {
+      allow read: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            || request.auth.uid == resource.data.studentId);
+      allow create: if isTeacher()
+        && request.resource.data.teacherId == request.auth.uid;
+      allow delete: if isTeacher() && request.auth.uid == resource.data.teacherId;
+      allow update: if false;
+    }
+
+    match /materials/{materialId} {
+      allow read: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            || request.auth.uid == resource.data.studentId);
+      allow create: if isTeacher()
+        && request.resource.data.teacherId == request.auth.uid;
+      allow delete: if isTeacher() && request.auth.uid == resource.data.teacherId;
+      allow update: if false;
+    }
+
+    match /exam_results/{examId} {
+      allow read: if signedIn()
+        && (request.auth.uid == resource.data.teacherId
+            || request.auth.uid == resource.data.studentId);
+      allow create: if signedIn()
+        && (request.auth.uid == request.resource.data.studentId
+            || request.auth.uid == request.resource.data.teacherId);
+      allow update, delete: if isTeacher()
+        && request.auth.uid == resource.data.teacherId;
+    }
+
+    // Veli görünümü: bağlantıyı (token) bilen herkes TEK dokümanı okuyabilir.
+    // Listeleme kapalıdır; içerik yalnızca öğretmen tarafından yazılır.
+    match /parentViews/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow write: if isTeacher()
+        && request.resource.data.teacherId == request.auth.uid;
+    }
+  }
+}

@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+/* -------- Koyu mod (pratik sınıf eşlemeleri) -------- */
+.dark body {
+  background: #0b1220;
+  color: #e2e8f0;
+}
+.dark .bg-white {
+  background-color: #151f31;
+}
+.dark .bg-slate-50 {
+  background-color: #0b1220;
+}
+.dark .bg-slate-100 {
+  background-color: #1e2a40;
+}
+.dark .bg-indigo-50 {
+  background-color: #312e8144;
+}
+.dark .bg-indigo-50\/60 {
+  background-color: #312e8133;
+}
+.dark .bg-emerald-50 {
+  background-color: #064e3b33;
+}
+.dark .bg-amber-50 {
+  background-color: #78350f33;
+}
+.dark .text-slate-900,
+.dark .text-slate-700,
+.dark .text-slate-600 {
+  color: #e2e8f0;
+}
+.dark .text-slate-500 {
+  color: #94a3b8;
+}
+.dark .text-slate-800 {
+  color: #cbd5e1;
+}
+.dark .border-slate-200,
+.dark .border-slate-100 {
+  border-color: #2a3a55;
+}
+.dark .ring-slate-100 {
+  --tw-ring-color: #22314d;
+}
+.dark .ring-slate-200 {
+  --tw-ring-color: #2a3a55;
+}
+.dark .divide-slate-50 > * + * {
+  border-color: #1e2a40;
+}
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #0f1a2c;
+  border-color: #2a3a55;
+  color: #e2e8f0;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b;
+}
+.dark .shadow-sm {
+  box-shadow: none;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+  }
+}
