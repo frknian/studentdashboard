@@ -28,6 +28,7 @@ import {
 import { subscribeStudents, touchStreak } from "@/lib/services/users";
 import { subscribePlans } from "@/lib/services/plans";
 import { subscribeQuestions } from "@/lib/services/questions";
+import { createNotification } from "@/lib/services/notifications";
 import { EXAM_SUBJECTS, QUESTION_TOPICS } from "@/lib/examConfig";
 import { getSubjects, getTopics } from "@/lib/curriculum";
 import {
@@ -243,6 +244,18 @@ export default function AnalysisPage() {
       date: logDate || dateKey(),
       count,
     });
+
+    if (profile.teacherId) {
+      createNotification({
+        recipientId: profile.teacherId,
+        senderId: profile.uid,
+        senderName: profile.displayName || "Öğrenci",
+        title: "Soru Çözümü Kaydedildi 🎯",
+        body: `${profile.displayName || "Öğrenciniz"} ${logDate || "bugün"} için ${count} soru çözdüğünü kaydetti.`,
+        link: "/panel/analiz",
+      }).catch(() => {});
+    }
+
     await touchStreak(profile);
     refreshProfile();
     setLogCount("");
@@ -274,6 +287,27 @@ export default function AnalysisPage() {
         totalNet: Math.round(totalNet * 100) / 100,
         weakTopics: weakTopicsList,
       });
+
+      if (!isTeacher && activeStudent.teacherId) {
+        createNotification({
+          recipientId: activeStudent.teacherId,
+          senderId: profile!.uid,
+          senderName: profile!.displayName || "Öğrenci",
+          title: "Yeni Deneme Sonucu 📊",
+          body: `${profile!.displayName || "Öğrenciniz"} "${examName.trim()}" deneme sonucunu girdi (Net: ${Math.round(totalNet * 100) / 100}).`,
+          link: "/panel/analiz",
+        }).catch(() => {});
+      } else if (isTeacher && activeStudent) {
+        createNotification({
+          recipientId: activeStudent.uid,
+          senderId: profile!.uid,
+          senderName: profile!.displayName || "Öğretmen",
+          title: "Deneme Sonucunuz Girildi 📊",
+          body: `Öğretmeniniz "${examName.trim()}" deneme sonucunuzu sisteme kaydetti (Net: ${Math.round(totalNet * 100) / 100}).`,
+          link: "/panel/analiz",
+        }).catch(() => {});
+      }
+
       if (!isTeacher) {
         await touchStreak(profile!);
         refreshProfile();

@@ -21,6 +21,8 @@ import {
   subscribePlans,
   uncompletePlan,
 } from "@/lib/services/plans";
+import { addLesson } from "@/lib/services/lessons";
+import { createNotification } from "@/lib/services/notifications";
 import { subscribeStudents, touchStreak } from "@/lib/services/users";
 import { refreshParentView } from "@/lib/services/parent";
 import {
@@ -100,7 +102,16 @@ interface AddPlanModalProps {
   availableSubjects: string[];
   studentGrade?: number;
   targetGroup?: TargetGroup;
-  onAdd: (data: { subject: string; topic: string; targetQuestions: number }) => Promise<void>;
+  isTeacher?: boolean;
+  canAddToCalendar?: boolean;
+  onAdd: (data: {
+    subject: string;
+    topic: string;
+    targetQuestions: number;
+    addToCalendar?: boolean;
+    lessonTime?: string;
+    lessonDuration?: number;
+  }) => Promise<void>;
 }
 
 function AddPlanModal({
@@ -110,12 +121,17 @@ function AddPlanModal({
   availableSubjects,
   studentGrade,
   targetGroup,
+  isTeacher,
+  canAddToCalendar,
   onAdd,
 }: AddPlanModalProps) {
   const [subject, setSubject] = useState(availableSubjects[0] || "Matematik");
   const [topic, setTopic] = useState("");
   const [customTopic, setCustomTopic] = useState("");
   const [target, setTarget] = useState("");
+  const [addToCalendar, setAddToCalendar] = useState(false);
+  const [lessonTime, setLessonTime] = useState("14:00");
+  const [lessonDuration, setLessonDuration] = useState("60");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -124,6 +140,9 @@ function AddPlanModal({
       setTopic("");
       setCustomTopic("");
       setTarget("");
+      setAddToCalendar(false);
+      setLessonTime("14:00");
+      setLessonDuration("60");
       setSaving(false);
     }
   }, [isOpen, availableSubjects]);
@@ -150,6 +169,9 @@ function AddPlanModal({
         subject,
         topic: finalTopic,
         targetQuestions: parseInt(target, 10) || 0,
+        addToCalendar,
+        lessonTime,
+        lessonDuration: parseInt(lessonDuration, 10) || 60,
       });
       onClose();
     } finally {
@@ -251,6 +273,47 @@ function AddPlanModal({
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
             />
           </div>
+
+          {isTeacher && canAddToCalendar && (
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3 dark:border-indigo-900/40 dark:bg-indigo-950/20 space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={addToCalendar}
+                  onChange={(e) => setAddToCalendar(e.target.checked)}
+                  className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  📅 Takvime Saatli Ders Olarak da Ekle
+                </span>
+              </label>
+
+              {addToCalendar && (
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <label className="text-[11px] font-medium text-slate-500">Ders Saati</label>
+                    <input
+                      type="time"
+                      value={lessonTime}
+                      onChange={(e) => setLessonTime(e.target.value)}
+                      className="mt-0.5 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-medium text-slate-500">Süre (Dk)</label>
+                    <input
+                      type="number"
+                      min={15}
+                      step={15}
+                      value={lessonDuration}
+                      onChange={(e) => setLessonDuration(e.target.value)}
+                      className="mt-0.5 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex gap-2 pt-2">
             <button
@@ -602,6 +665,9 @@ function ProgramView({
     subject: string;
     topic: string;
     targetQuestions: number;
+    addToCalendar?: boolean;
+    lessonTime?: string;
+    lessonDuration?: number;
   }) {
     if (!addModalInfo) return;
     const title = data.topic ? `${data.subject} - ${data.topic}` : data.subject;
@@ -615,6 +681,36 @@ function ProgramView({
       topic: data.topic || undefined,
       targetQuestions: data.targetQuestions,
     });
+
+    // Eğer takvime saatli ders olarak da eklenmek istendiyse
+    if (data.addToCalendar && isTeacher) {
+      const [hh, mm] = (data.lessonTime || "14:00").split(":").map(Number);
+      const lessonDate = new Date(addModalInfo.period);
+      lessonDate.setHours(hh || 14, mm || 0, 0, 0);
+
+      await addLesson({
+        teacherId,
+        studentId,
+        studentName: studentProfile?.displayName || "Öğrenci",
+        startTime: lessonDate,
+        durationMinutes: data.lessonDuration || 60,
+        subject: data.subject,
+        price: studentProfile?.hourlyRate || 0,
+        paymentStatus: "UNPAID",
+      }).catch((err) => console.error("Takvime ders eklenemedi:", err));
+    }
+
+    if (isTeacher) {
+      createNotification({
+        recipientId: studentId,
+        senderId: teacherId,
+        senderName: profile?.displayName || "Öğretmen",
+        title: "Çalışma Programına Eklendi 📋",
+        body: `${title} (${data.targetQuestions} Soru Hedefi)${data.addToCalendar ? " - Takvime ders olarak da planlandı." : ""}`,
+        link: "/panel/program",
+      }).catch(() => {});
+    }
+
     refreshParentView(studentId).catch(() => {});
   }
 
@@ -624,6 +720,7 @@ function ProgramView({
   }
 
   async function handleStudentComplete(planId: string, solved: number, note: string) {
+    const targetPlan = plans.find((p) => p.id === planId);
     await completePlan(
       planId,
       {
@@ -635,6 +732,18 @@ function ProgramView({
     await touchStreak(profile!);
     refreshProfile();
     refreshParentView(studentId).catch(() => {});
+
+    const targetTeacher = profile?.teacherId ?? teacherId;
+    if (targetTeacher && !isTeacher) {
+      createNotification({
+        recipientId: targetTeacher,
+        senderId: profile?.uid,
+        senderName: profile?.displayName || "Öğrenci",
+        title: "Program Görevi Tamamlandı ✅",
+        body: `${profile?.displayName || "Öğrenciniz"} "${targetPlan?.title || "Görev"}" görevini tamamladı (${solved} soru çözüldü).`,
+        link: "/panel/program",
+      }).catch(() => {});
+    }
   }
 
   async function handleUncomplete(planId: string) {
@@ -1060,6 +1169,8 @@ function ProgramView({
           availableSubjects={availableSubjects}
           studentGrade={studentProfile?.grade}
           targetGroup={studentProfile?.targetGroup}
+          isTeacher={isTeacher}
+          canAddToCalendar={addModalInfo.type === "DAILY"}
           onAdd={handleAddPlan}
         />
       )}

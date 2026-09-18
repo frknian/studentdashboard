@@ -33,6 +33,8 @@ import {
   updateLesson,
 } from "@/lib/services/lessons";
 import { subscribeStudents } from "@/lib/services/users";
+import { subscribePlans } from "@/lib/services/plans";
+import { createNotification } from "@/lib/services/notifications";
 import { refreshParentView } from "@/lib/services/parent";
 import {
   addMaterial,
@@ -45,6 +47,7 @@ import {
   type Lesson,
   type LessonMaterial,
   type PaymentStatus,
+  type PlanItem,
   type UserProfile,
 } from "@/lib/types";
 import { getSubjects, getTopics } from "@/lib/curriculum";
@@ -475,6 +478,7 @@ export default function CalendarPage() {
   }
 
   const isTeacher = profile?.role === "TEACHER";
+  const [plans, setPlans] = useState<PlanItem[]>([]);
 
   useEffect(() => {
     if (!profile) return;
@@ -488,6 +492,18 @@ export default function CalendarPage() {
     }
     return subscribeLessonsForStudent(profile.uid, setLessons);
   }, [profile, isTeacher]);
+
+  useEffect(() => {
+    if (!profile) return;
+    if (isTeacher) {
+      if (selectedStudent) {
+        return subscribePlans(selectedStudent, setPlans);
+      }
+      setPlans([]);
+      return;
+    }
+    return subscribePlans(profile.uid, setPlans);
+  }, [profile, isTeacher, selectedStudent]);
 
   const [calendarView, setCalendarView] = useState<"flow" | "schedule">("flow");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "CONFIRMED" | "COMPLETED" | "PENDING">("ALL");
@@ -573,6 +589,16 @@ export default function CalendarPage() {
       price: parseInt(formPrice, 10) || 0,
       paymentStatus: formPayment,
     });
+
+    createNotification({
+      recipientId: student.uid,
+      senderId: profile!.uid,
+      senderName: profile!.displayName || "Öğretmen",
+      title: "Yeni Ders Planlandı 📅",
+      body: `${finalSubjectName} - ${new Date(formDate).toLocaleString("tr-TR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}`,
+      link: "/panel/takvim",
+    }).catch(() => {});
+
     await afterMutation(student.uid);
     setShowForm(false);
     setFormDate("");
@@ -604,6 +630,16 @@ export default function CalendarPage() {
     await updateLesson(lesson.id, {
       proposedTime: Timestamp.fromDate(new Date(proposeValue)),
     });
+
+    createNotification({
+      recipientId: lesson.teacherId,
+      senderId: profile!.uid,
+      senderName: profile!.displayName || "Öğrenci",
+      title: "Ders Saati Teklifi ⏰",
+      body: `${profile!.displayName || "Öğrenciniz"} ${lesson.subject} dersi için yeni saat teklif etti.`,
+      link: "/panel/takvim",
+    }).catch(() => {});
+
     setProposeFor(null);
     setProposeValue("");
   }
@@ -615,6 +651,16 @@ export default function CalendarPage() {
       proposedTime: null,
       status: "CONFIRMED",
     });
+
+    createNotification({
+      recipientId: lesson.studentId,
+      senderId: profile!.uid,
+      senderName: profile!.displayName || "Öğretmen",
+      title: "Ders Saati Teklifi Kabul Edildi ✅",
+      body: `${lesson.subject} ders saati teklifiniz onaylandı.`,
+      link: "/panel/takvim",
+    }).catch(() => {});
+
     await afterMutation(lesson.studentId);
   }
 
@@ -847,11 +893,8 @@ export default function CalendarPage() {
               onChange={(e) => setFormPayment(e.target.value as PaymentStatus)}
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
             >
-              {Object.entries(PAYMENT_STATUS_LABELS).map(([v, l]) => (
-                <option key={v} value={v}>
-                  {l}
-                </option>
-              ))}
+              <option value="UNPAID">Ödeme Bekliyor</option>
+              <option value="PAID">Ödendi</option>
             </select>
           </label>
 
@@ -895,6 +938,7 @@ export default function CalendarPage() {
             const dayLessons = visibleLessons
               .filter((l) => isSameDay(l.startTime.toDate(), day))
               .sort((a, b) => a.startTime.toMillis() - b.startTime.toMillis());
+            const dayPlans = plans.filter((p) => p.periodKey === dateKey(day));
             const isToday = dateKey(day) === dateKey();
 
             return (
@@ -926,23 +970,62 @@ export default function CalendarPage() {
                       </p>
                     </div>
                   </div>
-                  <span
-                    className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${
-                      dayLessons.length > 0
-                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    {dayLessons.length > 0 ? `${dayLessons.length} Ders` : "Boş Gün"}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {dayPlans.length > 0 && (
+                      <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                        {dayPlans.length} Görev
+                      </span>
+                    )}
+                    <span
+                      className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${
+                        dayLessons.length > 0
+                          ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      {dayLessons.length > 0 ? `${dayLessons.length} Ders` : "Ders Yok"}
+                    </span>
+                  </div>
                 </div>
 
-                {dayLessons.length === 0 ? (
+                {dayLessons.length === 0 && dayPlans.length === 0 ? (
                   <p className="py-2.5 text-center text-xs text-slate-300 dark:text-slate-600 italic">
-                    Bu gün için planlanmış ders yok.
+                    Bu gün için planlanmış ders veya görev yok.
                   </p>
                 ) : (
                   <div className="mt-2.5 space-y-2">
+                    {/* Günün Çalışma Programı / Ödevleri */}
+                    {dayPlans.length > 0 && (
+                      <div className="rounded-xl border border-amber-200/70 bg-amber-50/40 p-2.5 dark:border-amber-900/40 dark:bg-amber-950/20">
+                        <p className="text-[11px] font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5 mb-1.5">
+                          <span>🎯</span> Günün Çalışma Programı ({dayPlans.length})
+                        </p>
+                        <div className="space-y-1.5">
+                          {dayPlans.map((dp) => (
+                            <div
+                              key={dp.id}
+                              className="flex items-center justify-between gap-2 rounded-lg bg-white/90 p-2 text-xs dark:bg-[#151f31]/90 shadow-2xs"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                  {dp.title}
+                                </p>
+                                {dp.targetQuestions > 0 && (
+                                  <p className="text-[10px] text-slate-500">
+                                    Hedef: {dp.targetQuestions} Soru
+                                    {dp.solvedQuestions ? ` • Çözülen: ${dp.solvedQuestions}` : ""}
+                                  </p>
+                                )}
+                              </div>
+                              <Badge tone={dp.isCompleted ? "green" : "amber"}>
+                                {dp.isCompleted ? "Tamamlandı" : "Bekliyor"}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {dayLessons.map((l) => {
                       const endTime = new Date(l.startTime.toDate().getTime() + l.durationMinutes * 60000);
                       const stProfile = students.find((s) => s.uid === l.studentId);
@@ -1010,26 +1093,65 @@ export default function CalendarPage() {
       ) : (
         <div className="mt-2 space-y-4">
           {days.map((day, i) => {
-          const dayLessons = visibleLessons.filter((l) =>
-            isSameDay(l.startTime.toDate(), day)
-          );
-          const isToday = dateKey(day) === dateKey();
-          return (
-            <div key={day.toISOString()}>
-              <p
-                className={`mb-1.5 text-xs font-semibold ${
-                  isToday ? "text-indigo-600" : "text-slate-400"
-                }`}
-              >
-                {DAY_NAMES[i]} • {day.toLocaleDateString("tr-TR", { day: "numeric", month: "long" })}
-                {isToday && " (Bugün)"}
-              </p>
-              {dayLessons.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-200 py-3 text-center text-xs text-slate-300">
-                  Ders yok
+            const dayLessons = visibleLessons.filter((l) =>
+              isSameDay(l.startTime.toDate(), day)
+            );
+            const dayPlans = plans.filter((p) => p.periodKey === dateKey(day));
+            const isToday = dateKey(day) === dateKey();
+            return (
+              <div key={day.toISOString()}>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <p
+                    className={`text-xs font-semibold ${
+                      isToday ? "text-indigo-600" : "text-slate-500"
+                    }`}
+                  >
+                    {DAY_NAMES[i]} • {day.toLocaleDateString("tr-TR", { day: "numeric", month: "long" })}
+                    {isToday && " (Bugün)"}
+                  </p>
+                  {dayPlans.length > 0 && (
+                    <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                      {dayPlans.length} Program Görevi
+                    </span>
+                  )}
                 </div>
-              ) : (
-                <div className="space-y-2">
+
+                {/* Günün Program Görevleri (Flow görünümünde) */}
+                {dayPlans.length > 0 && (
+                  <div className="mb-2 space-y-1.5 rounded-xl border border-amber-200/70 bg-amber-50/40 p-2.5 dark:border-amber-900/40 dark:bg-amber-950/20">
+                    <p className="text-[11px] font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5 mb-1">
+                      <span>🎯</span> Çalışma Programı
+                    </p>
+                    {dayPlans.map((dp) => (
+                      <div
+                        key={dp.id}
+                        className="flex items-center justify-between gap-2 rounded-lg bg-white/90 p-2 text-xs dark:bg-[#151f31]/90 shadow-2xs"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                            {dp.title}
+                          </p>
+                          {dp.targetQuestions > 0 && (
+                            <p className="text-[10px] text-slate-500">
+                              Hedef: {dp.targetQuestions} Soru
+                              {dp.solvedQuestions ? ` • Çözülen: ${dp.solvedQuestions}` : ""}
+                            </p>
+                          )}
+                        </div>
+                        <Badge tone={dp.isCompleted ? "green" : "amber"}>
+                          {dp.isCompleted ? "Tamamlandı" : "Bekliyor"}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {dayLessons.length === 0 && dayPlans.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-slate-200 py-3 text-center text-xs text-slate-300 dark:border-slate-800 dark:text-slate-600">
+                    Ders veya görev yok
+                  </div>
+                ) : (
+                  <div className="space-y-2">
                   {dayLessons.map((lesson) => (
                     <Card key={lesson.id} className="py-3">
                       <div className="flex items-start justify-between gap-2">

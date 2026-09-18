@@ -51,10 +51,9 @@ export default function FinancePage() {
     const unpaid = monthLessons
       .filter((l) => l.paymentStatus === "UNPAID")
       .reduce((s, l) => s + l.price, 0);
-    const packageCount = monthLessons.filter((l) => l.paymentStatus === "PACKAGE").length;
     const hours =
       Math.round((monthLessons.reduce((s, l) => s + l.durationMinutes, 0) / 60) * 10) / 10;
-    return { paid, unpaid, packageCount, hours };
+    return { paid, unpaid, hours };
   }, [monthLessons]);
 
   const allTime = useMemo(() => {
@@ -108,22 +107,18 @@ export default function FinancePage() {
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <Card className="text-center">
-          <p className="text-xl font-bold text-emerald-600">{totals.paid}₺</p>
+      <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
+        <Card className="text-center p-3">
+          <p className="text-lg sm:text-xl font-bold text-emerald-600">{totals.paid}₺</p>
           <p className="text-[11px] text-slate-500">Tahsil Edilen (Ay)</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-xl font-bold text-rose-600">{totals.unpaid}₺</p>
+        <Card className="text-center p-3">
+          <p className="text-lg sm:text-xl font-bold text-rose-600">{totals.unpaid}₺</p>
           <p className="text-[11px] text-slate-500">Bekleyen (Ay)</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-xl font-bold">{totals.hours}</p>
+        <Card className="text-center p-3">
+          <p className="text-lg sm:text-xl font-bold text-indigo-600">{totals.hours}</p>
           <p className="text-[11px] text-slate-500">Ders Saati (Ay)</p>
-        </Card>
-        <Card className="text-center">
-          <p className="text-xl font-bold">{totals.packageCount}</p>
-          <p className="text-[11px] text-slate-500">Paket Ders (Ay)</p>
         </Card>
       </div>
 
@@ -154,20 +149,16 @@ export default function FinancePage() {
               {lesson.price > 0 && (
                 <span className="text-sm font-bold">{lesson.price}₺</span>
               )}
-              {lesson.paymentStatus === "PACKAGE" ? (
-                <Badge tone="slate">{PAYMENT_STATUS_LABELS.PACKAGE}</Badge>
-              ) : (
-                <button
-                  onClick={() => togglePaid(lesson)}
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
-                    lesson.paymentStatus === "PAID"
-                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-                      : "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"
-                  }`}
-                >
-                  {PAYMENT_STATUS_LABELS[lesson.paymentStatus]}
-                </button>
-              )}
+              <button
+                onClick={() => togglePaid(lesson)}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
+                  lesson.paymentStatus === "PAID"
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                    : "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"
+                }`}
+              >
+                {PAYMENT_STATUS_LABELS[lesson.paymentStatus] || "Ödeme Bekliyor"}
+              </button>
             </div>
           </Card>
         ))}

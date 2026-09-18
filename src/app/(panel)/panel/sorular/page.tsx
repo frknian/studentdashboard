@@ -21,6 +21,7 @@ import {
   subscribeQuestions,
   uploadQuestion,
 } from "@/lib/services/questions";
+import { createNotification } from "@/lib/services/notifications";
 import { subscribeStudents, touchStreak } from "@/lib/services/users";
 import { QUESTION_TOPICS } from "@/lib/examConfig";
 import { getGradeLabel, getSubjects, getTopics } from "@/lib/curriculum";
@@ -122,6 +123,16 @@ export default function QuestionsPage() {
         topic: topicLabel,
         note,
       });
+
+      createNotification({
+        recipientId: profile.teacherId,
+        senderId: profile.uid,
+        senderName: profile.displayName || "Öğrenci",
+        title: "Soru Kumbarasına Yeni Soru ❓",
+        body: `${profile.displayName || "Öğrenciniz"} yeni bir soru ekledi: ${topicLabel}`,
+        link: "/panel/sorular",
+      }).catch(() => {});
+
       await touchStreak(profile);
       refreshProfile();
       handleFileChange(null);

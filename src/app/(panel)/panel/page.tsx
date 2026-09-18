@@ -19,9 +19,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import UserAvatar from "@/components/UserAvatar";
+import NotificationCenter from "@/components/NotificationCenter";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, ProgressBar, SectionTitle, Badge } from "@/components/ui";
 import PostLessonModal from "@/components/PostLessonModal";
+import { createNotification } from "@/lib/services/notifications";
 import {
   subscribeWeekTasks,
   addTask,
@@ -82,12 +84,24 @@ function StudentDashboard() {
   }
 
   async function handleComplete(taskId: string) {
+    const targetTask = tasks.find((t) => t.id === taskId);
     await completeTask(taskId, { difficulty, note });
     await touchStreak(profile!);
     refreshProfile();
     setFeedbackFor(null);
     setNote("");
     setDifficulty(3);
+
+    if (profile?.teacherId) {
+      createNotification({
+        recipientId: profile.teacherId,
+        senderId: profile.uid,
+        senderName: profile.displayName || "Öğrenci",
+        title: "Ödev Tamamlandı 🎉",
+        body: `${profile.displayName} "${targetTask?.title || "Ödev"}" görevini tamamladı (Zorluk: ${difficulty}/5).`,
+        link: "/panel",
+      }).catch(() => {});
+    }
   }
 
   return (
@@ -105,12 +119,13 @@ function StudentDashboard() {
             <h1 className="text-xl font-bold">{profile.displayName}</h1>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1.5 text-sm font-bold text-orange-600 dark:bg-orange-900/40 dark:text-orange-300">
             <Flame size={16} />
             {profile.streak ?? 0} gün
           </div>
-          <Link href="/panel/ayarlar" className="text-slate-400" aria-label="Ayarlar">
+          <NotificationCenter />
+          <Link href="/panel/ayarlar" className="text-slate-400 hover:text-slate-600" aria-label="Ayarlar">
             <Settings size={20} />
           </Link>
         </div>
@@ -397,6 +412,15 @@ function TeacherDashboard() {
         targetQuestions: target,
         dueDate: due,
       });
+      createNotification({
+        recipientId: taskStudent,
+        senderId: profile!.uid,
+        senderName: profile!.displayName || "Öğretmen",
+        title: "Yeni Ödev Eklendi 📚",
+        body: `${taskSubject ? `${taskSubject}: ` : ""}${taskTitle.trim()} (${target} Soru Hedefi)`,
+        link: "/panel",
+      }).catch(() => {});
+
       refreshParentView(taskStudent).catch(() => {});
       setTaskTitle("");
       setTaskDesc("");
@@ -426,9 +450,12 @@ function TeacherDashboard() {
             <h1 className="text-xl font-bold">{profile.displayName}</h1>
           </div>
         </div>
-        <Link href="/panel/ayarlar" className="text-slate-400" aria-label="Ayarlar">
-          <Settings size={20} />
-        </Link>
+        <div className="flex items-center gap-2.5">
+          <NotificationCenter />
+          <Link href="/panel/ayarlar" className="text-slate-400 hover:text-slate-600" aria-label="Ayarlar">
+            <Settings size={20} />
+          </Link>
+        </div>
       </header>
 
       <div className="mt-5 grid grid-cols-3 gap-3">

@@ -47,8 +47,20 @@ export const LESSON_STATUS_LABELS: Record<LessonStatus, string> = {
 export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   PAID: "Ödendi",
   UNPAID: "Ödeme Bekliyor",
-  PACKAGE: "Paket",
+  PACKAGE: "Ödeme Bekliyor",
 };
+
+export interface AppNotification {
+  id: string;
+  recipientId: string;
+  senderId?: string;
+  senderName?: string;
+  title: string;
+  body: string;
+  link?: string;
+  read: boolean;
+  createdAt?: Timestamp;
+}
 
 export interface Lesson {
   id: string;

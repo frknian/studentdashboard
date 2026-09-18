@@ -22,6 +22,7 @@ import { updateLesson } from "@/lib/services/lessons";
 import { refreshParentView } from "@/lib/services/parent";
 import { getSubjects, getTopics } from "@/lib/curriculum";
 import { formatTime, weekKey } from "@/lib/utils";
+import { createNotification } from "@/lib/services/notifications";
 import type { Lesson, PaymentStatus, UserProfile } from "@/lib/types";
 
 interface Props {
@@ -150,6 +151,22 @@ export default function PostLessonModal({
           targetQuestions: targetQ,
           dueDate: due,
         });
+
+        createNotification({
+          recipientId: lesson.studentId,
+          senderId: lesson.teacherId,
+          title: "Yeni Ödev Verildi 📚",
+          body: `${lesson.subject}: ${hwTitle.trim()} (${targetQ} Soru Hedefi)`,
+          link: "/panel",
+        }).catch(() => {});
+      } else if (lessonSummary.trim() || driveLink.trim() || files.length > 0) {
+        createNotification({
+          recipientId: lesson.studentId,
+          senderId: lesson.teacherId,
+          title: "Ders İçeriği & Materyal Eklendi 📄",
+          body: `${lesson.subject}: Derste yapılanlar ve ders materyalleri eklendi.`,
+          link: "/panel/takvim",
+        }).catch(() => {});
       }
 
       // 4. Veli portalı özetini anında güncelle
@@ -456,7 +473,6 @@ export default function PostLessonModal({
                 >
                   <option value="PAID">✓ Ödendi (Nakit/Havale)</option>
                   <option value="UNPAID">⏳ Ödeme Bekliyor</option>
-                  <option value="PACKAGE">📦 Paket Dersinden Düş</option>
                 </select>
               </div>
             </div>

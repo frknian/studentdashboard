@@ -12,6 +12,7 @@ import {
   Smartphone,
   Sun,
   MonitorSmartphone,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme, type ThemeChoice } from "@/contexts/ThemeContext";
@@ -20,6 +21,10 @@ import KvkkModal from "@/components/KvkkModal";
 import UserAvatar, { AVATAR_OPTIONS } from "@/components/UserAvatar";
 import { updateStudentSettings } from "@/lib/services/users";
 import { refreshParentView } from "@/lib/services/parent";
+import {
+  requestNotificationPermission,
+  triggerBrowserNotification,
+} from "@/lib/services/notifications";
 import { TARGET_GROUP_LABELS } from "@/lib/types";
 import { getGradeLabel } from "@/lib/curriculum";
 
@@ -43,6 +48,33 @@ export default function SettingsPage() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [showIosGuide, setShowIosGuide] = useState(false);
+
+  // Web Bildirim İzni Durumu
+  const [notifPerm, setNotifPerm] = useState<string>("default");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotifPerm(Notification.permission);
+    }
+  }, []);
+
+  async function handleEnableNotif() {
+    const res = await requestNotificationPermission();
+    setNotifPerm(res);
+    if (res === "granted") {
+      triggerBrowserNotification(
+        "Bildirimler Başarıyla Açıldı! 🔔",
+        "Ödev, soru ve ders etkileşimlerinden anında haberdar olacaksınız."
+      );
+    }
+  }
+
+  function handleSendTestNotif() {
+    triggerBrowserNotification(
+      "Test Bildirimi ✨",
+      "Öğrenci Takip bildirim sistemi sorunsuz çalışıyor!"
+    );
+  }
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -285,6 +317,73 @@ export default function SettingsPage() {
           </Card>
         </>
       )}
+
+      <SectionTitle title="Web Bildirimleri" />
+      <Card className="space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300">
+              <Bell size={20} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                Masaüstü & Telefon Bildirimleri
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {profile.role === "TEACHER"
+                  ? "Öğrenci soru yüklediğinde veya ödev tamamladığında anında bildirim alın."
+                  : "Öğretmeniniz ödev verdiğinde veya ders planladığında anında bildirim alın."}
+              </p>
+            </div>
+          </div>
+          <Badge
+            tone={
+              notifPerm === "granted"
+                ? "green"
+                : notifPerm === "denied"
+                ? "red"
+                : "amber"
+            }
+          >
+            {notifPerm === "granted"
+              ? "Etkin"
+              : notifPerm === "denied"
+              ? "Engellendi"
+              : "İzin Bekleniyor"}
+          </Badge>
+        </div>
+
+        {notifPerm === "granted" ? (
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+              <Check size={16} />
+              Tarayıcı bildirim izni açık
+            </div>
+            <button
+              type="button"
+              onClick={handleSendTestNotif}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-[#0f1a2c] dark:text-slate-200"
+            >
+              Test Bildirimi Gönder
+            </button>
+          </div>
+        ) : notifPerm === "denied" ? (
+          <div className="rounded-xl bg-rose-50 p-3 text-xs text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+            Bildirimler tarayıcınız tarafından engellenmiş. Adres çubuğundaki kilit simgesine dokunarak bildirim iznini açabilirsiniz.
+          </div>
+        ) : (
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={handleEnableNotif}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-indigo-700"
+            >
+              <Bell size={15} />
+              Bildirim İznini Etkinleştir
+            </button>
+          </div>
+        )}
+      </Card>
 
       <SectionTitle title="Ekrana Yükle & Uygulama" />
       <Card className="space-y-3">

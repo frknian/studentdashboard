@@ -137,5 +137,11 @@ service cloud.firestore {
       allow write: if isTeacher()
         && request.resource.data.teacherId == request.auth.uid;
     }
+
+    match /notifications/{notificationId} {
+      allow read, update, delete: if signedIn()
+        && request.auth.uid == resource.data.recipientId;
+      allow create: if signedIn();
+    }
   }
 }
