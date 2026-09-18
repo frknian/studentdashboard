@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -37,6 +37,52 @@ export default function SettingsPage() {
   const [customEmoji, setCustomEmoji] = useState("");
   const [busyAvatar, setBusyAvatar] = useState(false);
   const [avatarSaved, setAvatarSaved] = useState(false);
+
+  // PWA Ekrana Yükleme Durumları
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [isIos, setIsIos] = useState(false);
+  const [showIosGuide, setShowIosGuide] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const isRunningStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+    setIsStandalone(isRunningStandalone);
+
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+    setIsIos(isIosDevice);
+
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+    };
+  }, []);
+
+  async function handleInstallApp() {
+    if (!installPrompt) {
+      if (isIos) {
+        setShowIosGuide((v) => !v);
+      } else {
+        alert("Uygulamayı tarayıcı menünüzdeki (üç nokta) 'Ana Ekrana Ekle' veya 'Uygulamayı Yükle' seçeneğiyle doğrudan cihazınıza kurabilirsiniz.");
+      }
+      return;
+    }
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === "accepted") {
+      setIsStandalone(true);
+      setInstallPrompt(null);
+    }
+  }
 
   if (!profile) return null;
 
@@ -240,25 +286,82 @@ export default function SettingsPage() {
         </>
       )}
 
-      <SectionTitle title="Uygulama" />
-      <Card className="space-y-1">
-        <Link
-          href="/panel/rehber"
-          className="flex items-center gap-3 rounded-xl px-2 py-2.5 text-sm font-medium transition hover:bg-slate-50 dark:hover:bg-[#1e2a40]"
-        >
-          <BookOpen size={18} className="text-indigo-500" />
-          Kullanım Kılavuzu
-        </Link>
-        <button
-          onClick={() => setShowKvkk(true)}
-          className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left text-sm font-medium transition hover:bg-slate-50 dark:hover:bg-[#1e2a40]"
-        >
-          <FileText size={18} className="text-indigo-500" />
-          KVKK Aydınlatma Metni
-        </button>
-        <div className="flex items-center gap-3 px-2 py-2.5 text-sm text-slate-500">
-          <Smartphone size={18} className="text-indigo-500" />
-          Ana ekrana eklemek için tarayıcı menüsünden &quot;Ana Ekrana Ekle&quot;yi seçin.
+      <SectionTitle title="Ekrana Yükle & Uygulama" />
+      <Card className="space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-950 p-1 shadow-sm ring-1 ring-slate-800">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/icons/icon-192.png"
+              alt="Logo"
+              className="h-full w-full object-contain rounded-xl"
+            />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+              Öğrenci Takip Uygulaması
+            </h3>
+            <p className="text-xs text-slate-500">
+              {isStandalone
+                ? "✓ Uygulama cihazınıza yüklendi ve aktif"
+                : "Uygulamayı ana ekranınıza ekleyerek tam ekran ve hızlı kullanın."}
+            </p>
+          </div>
+        </div>
+
+        {isStandalone ? (
+          <div className="flex items-center gap-2 rounded-xl bg-emerald-50 p-2.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+            <Check size={16} />
+            Uygulama başarıyla ana ekranınıza yüklendi.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={handleInstallApp}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-xs font-bold text-white shadow-sm transition hover:bg-indigo-700 active:scale-[0.99]"
+            >
+              <Smartphone size={16} />
+              {installPrompt
+                ? "Uygulamayı Şimdi Ekrana Yükle"
+                : isIos
+                  ? (showIosGuide ? "iPhone Kurulum Adımlarını Gizle" : "iPhone / iPad Ana Ekrana Nasıl Eklenir?")
+                  : "Uygulamayı Ekrana Yükle"}
+            </button>
+
+            {(showIosGuide || isIos) && (
+              <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3 text-xs text-slate-700 dark:border-indigo-900/60 dark:bg-indigo-950/30 dark:text-slate-300">
+                <p className="font-bold text-indigo-700 dark:text-indigo-300 mb-1.5">
+                  📱 iPhone / Safari Kurulum Adımları:
+                </p>
+                <ol className="list-decimal pl-4 space-y-1 text-[11px]">
+                  <li>Safari&apos;nin alt çubuğundaki <strong>Paylaş</strong> (kare içinde yukarı ok) simgesine dokunun.</li>
+                  <li>Menüyü aşağı kaydırıp <strong>&quot;Ana Ekrana Ekle&quot;</strong> seçeneğine dokunun.</li>
+                  <li>Sağ üstteki <strong>&quot;Ekle&quot;</strong> butonuna dokunun.</li>
+                </ol>
+                <p className="mt-1.5 text-[10px] text-slate-400">
+                  Logo doğrudan ana ekranınızda bir mobil uygulama gibi belirecektir.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="border-t border-slate-100 pt-2 space-y-1 dark:border-slate-800">
+          <Link
+            href="/panel/rehber"
+            className="flex items-center gap-3 rounded-xl px-2 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-[#1e2a40]"
+          >
+            <BookOpen size={16} className="text-indigo-500" />
+            Kullanım Kılavuzu
+          </Link>
+          <button
+            onClick={() => setShowKvkk(true)}
+            className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-[#1e2a40]"
+          >
+            <FileText size={16} className="text-indigo-500" />
+            KVKK Aydınlatma Metni
+          </button>
         </div>
       </Card>
 

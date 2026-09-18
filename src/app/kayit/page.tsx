@@ -86,13 +86,13 @@ export default function RegisterPage() {
     <div className="flex min-h-dvh flex-col items-center justify-center px-6 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl shadow-md ring-1 ring-slate-200">
+          <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl bg-slate-950 p-1.5 shadow-xl ring-1 ring-slate-800/80">
             <Image
               src="/logo.png"
               alt="Öğrenci Takip Logo"
-              width={64}
-              height={64}
-              className="h-full w-full object-cover"
+              width={80}
+              height={80}
+              className="h-full w-full object-contain rounded-2xl"
               priority
             />
           </div>

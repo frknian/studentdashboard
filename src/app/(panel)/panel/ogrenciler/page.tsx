@@ -37,11 +37,13 @@ import {
   type UserProfile,
 } from "@/lib/types";
 import { useRouter } from "next/navigation";
+import StudentDetailModal from "@/components/StudentDetailModal";
 
 export default function StudentsPage() {
   const { profile } = useAuth();
   const router = useRouter();
   const [students, setStudents] = useState<UserProfile[]>([]);
+  const [selectedDetailStudent, setSelectedDetailStudent] = useState<UserProfile | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [syncing, setSyncing] = useState<string | null>(null);
   const [noteFor, setNoteFor] = useState<string | null>(null);
@@ -250,8 +252,18 @@ export default function StudentsPage() {
                 )}
               </div>
 
+              {/* Kapsamlı Öğrenci Profili Butonu */}
+              <button
+                type="button"
+                onClick={() => setSelectedDetailStudent(s)}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-50 py-2.5 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 dark:bg-indigo-950/70 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+              >
+                <User size={15} />
+                Öğrenci Profili & Geçmişi (Ders Günleri, Konular, Ödemeler)
+              </button>
+
               {/* Hızlı Aksiyon Butonları */}
-              <div className="mt-3 flex gap-2">
+              <div className="mt-2.5 flex gap-2">
                 <button
                   onClick={() =>
                     copy(`${window.location.origin}/veli/${s.parentToken}`, s.uid)
@@ -607,6 +619,18 @@ export default function StudentsPage() {
           </Card>
         )}
       </div>
+
+      {selectedDetailStudent && (
+        <StudentDetailModal
+          student={selectedDetailStudent}
+          teacherId={profile.uid}
+          onClose={() => setSelectedDetailStudent(null)}
+          onStudentRemoved={() => {
+            setSelectedDetailStudent(null);
+            setStudents((prev) => prev.filter((st) => st.uid !== selectedDetailStudent.uid));
+          }}
+        />
+      )}
     </div>
   );
 }

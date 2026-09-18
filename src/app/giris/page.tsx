@@ -79,13 +79,13 @@ export default function LoginPage() {
     <div className="flex min-h-dvh flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl shadow-md ring-1 ring-slate-200">
+          <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-slate-950 p-2 shadow-xl ring-1 ring-slate-800/80">
             <Image
               src="/logo.png"
               alt="Öğrenci Takip Logo"
-              width={80}
-              height={80}
-              className="h-full w-full object-cover"
+              width={96}
+              height={96}
+              className="h-full w-full object-contain rounded-2xl"
               priority
             />
           </div>

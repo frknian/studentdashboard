@@ -9,16 +9,21 @@ import {
   ExternalLink,
   FileText,
   Image as ImageIcon,
+  LayoutGrid,
   Link as LinkIcon,
+  ListFilter,
   Loader2,
   Paperclip,
   Plus,
   Trash2,
   X,
+  CalendarDays,
+  Clock,
 } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge, Card } from "@/components/ui";
+import UserAvatar from "@/components/UserAvatar";
 import StudentPicker from "@/components/StudentPicker";
 import PostLessonModal from "@/components/PostLessonModal";
 import {
@@ -484,18 +489,43 @@ export default function CalendarPage() {
     return subscribeLessonsForStudent(profile.uid, setLessons);
   }, [profile, isTeacher]);
 
+  const [calendarView, setCalendarView] = useState<"flow" | "schedule">("flow");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "CONFIRMED" | "COMPLETED" | "PENDING">("ALL");
+
   const visibleLessons = useMemo(() => {
     let list = lessons;
     if (isTeacher && selectedStudent) {
       list = list.filter((l) => l.studentId === selectedStudent);
     }
+    if (statusFilter !== "ALL") {
+      list = list.filter((l) => l.status === statusFilter);
+    }
     return list;
-  }, [lessons, isTeacher, selectedStudent]);
+  }, [lessons, isTeacher, selectedStudent, statusFilter]);
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
     [weekStart]
   );
+
+  // Bu haftanın dersleri ve istatistikleri
+  const weekLessons = useMemo(() => {
+    const endOfWeek = addDays(weekStart, 7);
+    return visibleLessons.filter((l) => {
+      const d = l.startTime.toDate();
+      return d >= weekStart && d < endOfWeek;
+    });
+  }, [visibleLessons, weekStart]);
+
+  const weekStats = useMemo(() => {
+    const totalMinutes = weekLessons.reduce((sum, l) => sum + l.durationMinutes, 0);
+    const totalPrice = weekLessons.reduce((sum, l) => sum + (l.price || 0), 0);
+    return {
+      count: weekLessons.length,
+      hours: (totalMinutes / 60).toFixed(1),
+      price: totalPrice,
+    };
+  }, [weekLessons]);
 
   if (!profile) return null;
 
@@ -507,6 +537,26 @@ export default function CalendarPage() {
   async function handleAddLesson() {
     const student = students.find((s) => s.uid === formStudent);
     if (!student || !formDate || !formSubject.trim()) return;
+
+    // Ders çakışması kontrolü
+    const newStartMs = new Date(formDate).getTime();
+    const newEndMs = newStartMs + (parseInt(formDuration, 10) || 60) * 60 * 1000;
+    const conflict = lessons.find((l) => {
+      if (l.status === "CANCELLED") return false;
+      const existStart = l.startTime.toDate().getTime();
+      const existEnd = existStart + l.durationMinutes * 60 * 1000;
+      return newStartMs < existEnd && newEndMs > existStart;
+    });
+
+    if (conflict) {
+      const conflictStudent = conflict.studentName || "bir öğrenci";
+      const conflictTime = formatTime(conflict.startTime.toDate());
+      const proceed = confirm(
+        `⚠️ DİKKAT (Ders Çakışması): ${conflictTime} saatinde zaten ${conflictStudent} ile bir dersiniz bulunuyor. Yine de bu saate yeni ders kaydetmek istiyor musunuz?`
+      );
+      if (!proceed) return;
+    }
+
     const finalTopic =
       formTopic === "__CUSTOM__" ? customTopic.trim() : formTopic.trim();
     const finalSubjectName = finalTopic
@@ -571,19 +621,64 @@ export default function CalendarPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Ders Takvimi</h1>
+        <div>
+          <h1 className="text-xl font-bold">Ders Takvimi</h1>
+          <p className="text-xs text-slate-500">
+            {isTeacher ? "Haftalık ders planı ve öğretmen ajandası" : "Dersleriniz ve çalışma takviminiz"}
+          </p>
+        </div>
         {isTeacher && (
           <button
             onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white"
+            className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700"
           >
-            <Plus size={16} /> Ders Ekle
+            <Plus size={15} /> Ders Ekle
           </button>
         )}
       </div>
 
       {isTeacher && (
-        <div className="mt-4">
+        <div className="mt-3 flex items-center justify-between rounded-xl bg-indigo-50/80 px-3.5 py-2 text-xs font-semibold text-indigo-950 dark:bg-indigo-950/50 dark:text-indigo-200">
+          <span className="flex items-center gap-1.5">
+            <CalendarDays size={14} className="text-indigo-600 dark:text-indigo-400" />
+            Bu Hafta: <strong>{weekStats.count} ders</strong> ({weekStats.hours} saat)
+          </span>
+          {weekStats.price > 0 && (
+            <span className="text-emerald-700 dark:text-emerald-300 font-bold">
+              ₺{weekStats.price} planlandı
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Görünüm Seçici (Akış vs Çizelge) */}
+      <div className="mt-3.5 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-[#1e2a40]">
+        <button
+          type="button"
+          onClick={() => setCalendarView("flow")}
+          className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold transition ${
+            calendarView === "flow"
+              ? "bg-white text-indigo-600 shadow-xs dark:bg-[#0f1a2c] dark:text-indigo-400"
+              : "text-slate-500"
+          }`}
+        >
+          <CalendarDays size={14} /> Haftalık Akış
+        </button>
+        <button
+          type="button"
+          onClick={() => setCalendarView("schedule")}
+          className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold transition ${
+            calendarView === "schedule"
+              ? "bg-white text-indigo-600 shadow-xs dark:bg-[#0f1a2c] dark:text-indigo-400"
+              : "text-slate-500"
+          }`}
+        >
+          <LayoutGrid size={14} /> Ders Çizelgesi (Gün & Saat & Öğrenci)
+        </button>
+      </div>
+
+      {isTeacher && (
+        <div className="mt-3">
           <StudentPicker
             students={students}
             value={selectedStudent}
@@ -591,6 +686,34 @@ export default function CalendarPage() {
           />
         </div>
       )}
+
+      {/* Durum Filtreleme Çipleri */}
+      <div className="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <span className="text-slate-400 text-[11px] font-medium shrink-0 flex items-center gap-1">
+          <ListFilter size={12} /> Durum:
+        </span>
+        {(
+          [
+            ["ALL", "Tümü"],
+            ["CONFIRMED", "Onaylı"],
+            ["COMPLETED", "Tamamlandı"],
+            ["PENDING", "Bekleyen"],
+          ] as const
+        ).map(([val, lbl]) => (
+          <button
+            key={val}
+            type="button"
+            onClick={() => setStatusFilter(val)}
+            className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition ${
+              statusFilter === val
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
+            }`}
+          >
+            {lbl}
+          </button>
+        ))}
+      </div>
 
       {isTeacher && showForm && (
         <Card className="mt-4 space-y-3">
@@ -766,8 +889,127 @@ export default function CalendarPage() {
         </button>
       </div>
 
-      <div className="mt-2 space-y-4">
-        {days.map((day, i) => {
+      {calendarView === "schedule" ? (
+        <div className="mt-3 space-y-3">
+          {days.map((day, i) => {
+            const dayLessons = visibleLessons
+              .filter((l) => isSameDay(l.startTime.toDate(), day))
+              .sort((a, b) => a.startTime.toMillis() - b.startTime.toMillis());
+            const isToday = dateKey(day) === dateKey();
+
+            return (
+              <div
+                key={day.toISOString()}
+                className={`rounded-2xl border bg-white p-3.5 shadow-xs transition-all dark:bg-[#151f31] ${
+                  isToday
+                    ? "border-indigo-300 ring-2 ring-indigo-100 dark:border-indigo-800 dark:ring-indigo-950/50"
+                    : "border-slate-100 dark:border-slate-800"
+                }`}
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`flex h-7 w-7 items-center justify-center rounded-xl text-xs font-bold ${
+                        isToday
+                          ? "bg-indigo-600 text-white"
+                          : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                      }`}
+                    >
+                      {DAY_NAMES[i]}
+                    </span>
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 dark:text-white">
+                        {day.toLocaleDateString("tr-TR", { day: "numeric", month: "long" })}
+                        {isToday && (
+                          <span className="ml-1.5 text-xs text-indigo-600 font-semibold">(Bugün)</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${
+                      dayLessons.length > 0
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                        : "text-slate-400"
+                    }`}
+                  >
+                    {dayLessons.length > 0 ? `${dayLessons.length} Ders` : "Boş Gün"}
+                  </span>
+                </div>
+
+                {dayLessons.length === 0 ? (
+                  <p className="py-2.5 text-center text-xs text-slate-300 dark:text-slate-600 italic">
+                    Bu gün için planlanmış ders yok.
+                  </p>
+                ) : (
+                  <div className="mt-2.5 space-y-2">
+                    {dayLessons.map((l) => {
+                      const endTime = new Date(l.startTime.toDate().getTime() + l.durationMinutes * 60000);
+                      const stProfile = students.find((s) => s.uid === l.studentId);
+
+                      return (
+                        <div
+                          key={l.id}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs dark:border-slate-800/80 dark:bg-[#0f1a2c]"
+                        >
+                          <div className="flex items-start gap-2.5">
+                            <div className="flex flex-col items-center justify-center rounded-lg bg-indigo-100 px-2 py-1 text-indigo-800 font-bold text-[11px] shrink-0 dark:bg-indigo-950 dark:text-indigo-300">
+                              <span className="leading-tight">{formatTime(l.startTime.toDate())}</span>
+                              <span className="text-[9px] text-slate-500 font-normal leading-tight">
+                                {formatTime(endTime)}
+                              </span>
+                            </div>
+
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <UserAvatar icon={stProfile?.avatarIcon} role="STUDENT" size="sm" />
+                                <span className="font-bold text-slate-900 dark:text-white">
+                                  {isTeacher ? l.studentName : profile?.displayName}
+                                </span>
+                                {stProfile?.grade && (
+                                  <span className="text-[10px] text-slate-400">
+                                    • {stProfile.grade}. Sınıf
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-0.5 text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
+                                {l.subject}
+                              </p>
+                              {l.price > 0 && (
+                                <p className="text-[10px] text-slate-400">₺{l.price}</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 justify-end">
+                            <Badge tone={statusTone(l.status)}>
+                              {LESSON_STATUS_LABELS[l.status]}
+                            </Badge>
+                            <Badge tone={paymentTone(l.paymentStatus)}>
+                              {PAYMENT_STATUS_LABELS[l.paymentStatus]}
+                            </Badge>
+                            {isTeacher && (
+                              <button
+                                type="button"
+                                onClick={() => setPostLessonFor(l)}
+                                className="rounded-lg bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-indigo-700 shadow-xs"
+                              >
+                                Ders Sonu
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="mt-2 space-y-4">
+          {days.map((day, i) => {
           const dayLessons = visibleLessons.filter((l) =>
             isSameDay(l.startTime.toDate(), day)
           );
@@ -961,6 +1203,7 @@ export default function CalendarPage() {
           );
         })}
       </div>
+      )}
 
       {postLessonFor && (
         <PostLessonModal

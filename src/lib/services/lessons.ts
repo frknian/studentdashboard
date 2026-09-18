@@ -35,6 +35,21 @@ export function subscribeLessonsForTeacher(
   });
 }
 
+export function subscribeLessonsForTeacherAndStudent(
+  teacherId: string,
+  studentId: string,
+  cb: (lessons: Lesson[]) => void
+): () => void {
+  const q = query(
+    collection(db(), "lessons"),
+    where("teacherId", "==", teacherId),
+    where("studentId", "==", studentId)
+  );
+  return onSnapshot(q, (snap) => {
+    cb(sortLessons(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Lesson)));
+  });
+}
+
 export async function addLesson(data: {
   teacherId: string;
   studentId: string;

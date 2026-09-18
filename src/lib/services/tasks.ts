@@ -30,6 +30,20 @@ export function subscribeWeekTasks(
   });
 }
 
+export function subscribeAllTasksForStudent(
+  studentId: string,
+  cb: (tasks: StudyTask[]) => void
+): () => void {
+  const q = query(
+    collection(db(), "tasks"),
+    where("studentId", "==", studentId)
+  );
+  return onSnapshot(q, (snap) => {
+    const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as StudyTask);
+    cb(list);
+  });
+}
+
 export async function addTask(data: {
   teacherId: string;
   studentId: string;
