@@ -62,7 +62,7 @@ export async function addLesson(data: {
 
 export async function updateLesson(
   lessonId: string,
-  data: Partial<Pick<Lesson, "status" | "paymentStatus" | "parentNote" | "startTime" | "proposedTime">>
+  data: Partial<Pick<Lesson, "status" | "paymentStatus" | "parentNote" | "startTime" | "proposedTime" | "price">>
 ): Promise<void> {
   await updateDoc(doc(db(), "lessons", lessonId), data);
 }

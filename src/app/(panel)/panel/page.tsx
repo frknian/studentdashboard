@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, ProgressBar, SectionTitle, Badge } from "@/components/ui";
+import PostLessonModal from "@/components/PostLessonModal";
 import {
   subscribeWeekTasks,
   addTask,
@@ -312,6 +313,7 @@ function TeacherDashboard() {
   const [taskDueDate, setTaskDueDate] = useState("");
   const [taskBusy, setTaskBusy] = useState(false);
   const [selectedStudentTasks, setSelectedStudentTasks] = useState<StudyTask[]>([]);
+  const [postLessonFor, setPostLessonFor] = useState<Lesson | null>(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -681,9 +683,17 @@ function TeacherDashboard() {
                   {l.subject} • {formatTime(l.startTime.toDate())}
                 </p>
               </div>
-              <Badge tone={l.status === "PENDING" ? "amber" : "indigo"}>
-                {l.status === "PENDING" ? "Onay Bekliyor" : "Onaylandı"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPostLessonFor(l)}
+                  className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 flex items-center gap-1 shadow-xs transition-colors"
+                >
+                  <CheckCircle2 size={12} /> Ders Sonu
+                </button>
+                <Badge tone={l.status === "PENDING" ? "amber" : "indigo"}>
+                  {l.status === "PENDING" ? "Onay Bekliyor" : "Onaylandı"}
+                </Badge>
+              </div>
             </Card>
           ))}
         {lessons.filter((l) => l.startTime.toDate() >= new Date() && l.status !== "CANCELLED")
@@ -693,6 +703,16 @@ function TeacherDashboard() {
           </Card>
         )}
       </div>
+
+      {postLessonFor && (
+        <PostLessonModal
+          lesson={postLessonFor}
+          student={students.find((s) => s.uid === postLessonFor.studentId)}
+          isOpen={Boolean(postLessonFor)}
+          onClose={() => setPostLessonFor(null)}
+          onSaved={() => refreshParentView(postLessonFor.studentId).catch(() => {})}
+        />
+      )}
     </div>
   );
 }

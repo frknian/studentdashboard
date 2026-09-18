@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -19,6 +20,7 @@ import { Timestamp } from "firebase/firestore";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge, Card } from "@/components/ui";
 import StudentPicker from "@/components/StudentPicker";
+import PostLessonModal from "@/components/PostLessonModal";
 import {
   addLesson,
   subscribeLessonsForStudent,
@@ -408,6 +410,7 @@ export default function CalendarPage() {
   const [noteText, setNoteText] = useState("");
   const [proposeFor, setProposeFor] = useState<string | null>(null);
   const [proposeValue, setProposeValue] = useState("");
+  const [postLessonFor, setPostLessonFor] = useState<Lesson | null>(null);
 
   // form state
   const [formStudent, setFormStudent] = useState("");
@@ -885,23 +888,31 @@ export default function CalendarPage() {
                           {(lesson.status === "CONFIRMED" || lesson.status === "PENDING") && (
                             <>
                               <button
-                                onClick={() => handleStatus(lesson, "COMPLETED")}
-                                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white"
+                                onClick={() => setPostLessonFor(lesson)}
+                                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 flex items-center gap-1 shadow-xs transition-colors"
                               >
-                                Tamamlandı
+                                <CheckCircle2 size={13} /> Dersi Tamamla & Ders Sonu
                               </button>
                               <button
                                 onClick={() => handleStatus(lesson, "CANCELLED")}
-                                className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600"
+                                className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
                               >
                                 İptal
                               </button>
                             </>
                           )}
+                          {lesson.status === "COMPLETED" && (
+                            <button
+                              onClick={() => setPostLessonFor(lesson)}
+                              className="rounded-lg bg-indigo-50 border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 flex items-center gap-1 transition-colors"
+                            >
+                              <FileText size={13} /> Ders Sonu Raporu
+                            </button>
+                          )}
                           {lesson.status === "COMPLETED" && lesson.paymentStatus === "UNPAID" && (
                             <button
                               onClick={() => handlePayment(lesson, "PAID")}
-                              className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-600"
+                              className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-600 hover:bg-emerald-50"
                             >
                               Ödendi İşaretle
                             </button>
@@ -911,7 +922,7 @@ export default function CalendarPage() {
                               setNoteFor(lesson.id);
                               setNoteText(lesson.parentNote ?? "");
                             }}
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
+                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
                           >
                             Veli Notu
                           </button>
@@ -950,6 +961,16 @@ export default function CalendarPage() {
           );
         })}
       </div>
+
+      {postLessonFor && (
+        <PostLessonModal
+          lesson={postLessonFor}
+          student={students.find((s) => s.uid === postLessonFor.studentId)}
+          isOpen={Boolean(postLessonFor)}
+          onClose={() => setPostLessonFor(null)}
+          onSaved={() => afterMutation(postLessonFor.studentId)}
+        />
+      )}
     </div>
   );
 }
