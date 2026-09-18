@@ -91,6 +91,8 @@ export interface StudyTask {
 export interface QuestionItem {
   id: string;
   studentId: string;
+  studentName?: string;
+  studentAvatar?: string;
   teacherId: string;
   imageData: string; // base64 data URL (Firestore'da saklanır)
   topic: string;

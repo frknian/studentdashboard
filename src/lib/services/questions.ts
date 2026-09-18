@@ -42,6 +42,8 @@ function blobToDataUrl(blob: Blob): Promise<string> {
  */
 export async function uploadQuestion(data: {
   studentId: string;
+  studentName?: string;
+  studentAvatar?: string;
   teacherId: string;
   file: File;
   topic: string;
@@ -59,6 +61,8 @@ export async function uploadQuestion(data: {
   }
   await addDoc(collection(db(), "questions"), {
     studentId: data.studentId,
+    studentName: data.studentName || null,
+    studentAvatar: data.studentAvatar || null,
     teacherId: data.teacherId,
     imageData,
     topic: data.topic,
