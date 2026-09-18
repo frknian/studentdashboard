@@ -18,7 +18,7 @@ import {
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import UserAvatar from "@/components/UserAvatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, ProgressBar, SectionTitle, Badge } from "@/components/ui";
 import PostLessonModal from "@/components/PostLessonModal";
@@ -94,16 +94,12 @@ function StudentDashboard() {
     <div>
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-xs ring-1 ring-slate-200">
-            <Image
-              src="/logo.png"
-              alt="Logo"
-              width={44}
-              height={44}
-              className="h-full w-full object-cover"
-              priority
-            />
-          </div>
+          <UserAvatar
+            icon={profile.avatarIcon}
+            role={profile.role}
+            name={profile.displayName}
+            size="md"
+          />
           <div>
             <p className="text-xs text-slate-500">Merhaba,</p>
             <h1 className="text-xl font-bold">{profile.displayName}</h1>
@@ -419,16 +415,12 @@ function TeacherDashboard() {
     <div>
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-xs ring-1 ring-slate-200">
-            <Image
-              src="/logo.png"
-              alt="Logo"
-              width={44}
-              height={44}
-              className="h-full w-full object-cover"
-              priority
-            />
-          </div>
+          <UserAvatar
+            icon={profile.avatarIcon}
+            role={profile.role}
+            name={profile.displayName}
+            size="md"
+          />
           <div>
             <p className="text-xs text-slate-500">Hoş geldiniz,</p>
             <h1 className="text-xl font-bold">{profile.displayName}</h1>

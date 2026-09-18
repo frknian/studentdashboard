@@ -231,6 +231,7 @@ export async function refreshParentView(studentId: string): Promise<void> {
     studentId,
     teacherId: student.teacherId ?? "",
     studentName: student.displayName,
+    avatarIcon: student.avatarIcon,
     grade: student.grade,
     enrolledSubjects: studentSubs,
     schoolName: student.schoolName,

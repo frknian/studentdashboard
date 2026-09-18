@@ -30,6 +30,7 @@ export interface UserProfile {
   weeklyTarget?: number;
   streak?: number;
   lastActionDate?: string;
+  avatarIcon?: string; // Özelleştirilebilir profil simgesi / avatar
   createdAt?: Timestamp;
 }
 
@@ -245,6 +246,7 @@ export interface ParentView {
   studentId: string;
   teacherId: string;
   studentName: string;
+  avatarIcon?: string;
   grade?: number;
   enrolledSubjects?: string[];
   schoolName?: string;

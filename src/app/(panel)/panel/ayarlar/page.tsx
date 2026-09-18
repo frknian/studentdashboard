@@ -17,6 +17,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme, type ThemeChoice } from "@/contexts/ThemeContext";
 import { Card, SectionTitle, Badge } from "@/components/ui";
 import KvkkModal from "@/components/KvkkModal";
+import UserAvatar, { AVATAR_OPTIONS } from "@/components/UserAvatar";
+import { updateStudentSettings } from "@/lib/services/users";
+import { refreshParentView } from "@/lib/services/parent";
 import { TARGET_GROUP_LABELS } from "@/lib/types";
 import { getGradeLabel } from "@/lib/curriculum";
 
@@ -27,12 +30,31 @@ const THEME_OPTIONS: { value: ThemeChoice; label: string; icon: typeof Sun }[] =
 ];
 
 export default function SettingsPage() {
-  const { profile, logout } = useAuth();
+  const { profile, logout, refreshProfile } = useAuth();
   const { theme, setTheme } = useTheme();
   const [showKvkk, setShowKvkk] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [customEmoji, setCustomEmoji] = useState("");
+  const [busyAvatar, setBusyAvatar] = useState(false);
+  const [avatarSaved, setAvatarSaved] = useState(false);
 
   if (!profile) return null;
+
+  async function handleSelectAvatar(emoji: string) {
+    if (!profile) return;
+    setBusyAvatar(true);
+    try {
+      await updateStudentSettings(profile.uid, { avatarIcon: emoji });
+      await refreshProfile();
+      if (profile.role === "STUDENT") {
+        refreshParentView(profile.uid).catch(() => {});
+      }
+      setAvatarSaved(true);
+      setTimeout(() => setAvatarSaved(false), 2000);
+    } finally {
+      setBusyAvatar(false);
+    }
+  }
 
   async function copyCode() {
     try {
@@ -64,6 +86,86 @@ export default function SettingsPage() {
               <Icon size={15} /> {label}
             </button>
           ))}
+        </div>
+      </Card>
+
+      <SectionTitle title="Profil Simgesi (Avatar)" />
+      <Card>
+        <div className="mb-4 flex items-center gap-3">
+          <UserAvatar
+            icon={profile.avatarIcon}
+            role={profile.role}
+            name={profile.displayName}
+            size="lg"
+          />
+          <div>
+            <p className="text-xs text-slate-500">Mevcut Simgeniz</p>
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+              {profile.displayName}
+            </p>
+            <p className="text-[11px] text-slate-400">
+              Bu simge ana panelde ve veli/öğretmen ekranında isminizin yanında gösterilir.
+            </p>
+          </div>
+        </div>
+
+        <p className="mb-2 text-xs font-semibold text-slate-600 dark:text-slate-400">
+          Önerilen Simgelerden Seçin:
+        </p>
+        <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+          {AVATAR_OPTIONS.map((opt) => {
+            const currentSelected =
+              profile.avatarIcon?.trim() ||
+              (profile.role === "TEACHER" ? "👨‍🏫" : "🧑‍🎓");
+            const isSelected = currentSelected === opt.emoji;
+
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => handleSelectAvatar(opt.emoji)}
+                disabled={busyAvatar}
+                title={opt.label}
+                className={`flex h-11 w-11 items-center justify-center rounded-2xl text-xl transition-all duration-150 hover:scale-105 active:scale-95 ${
+                  isSelected
+                    ? "bg-indigo-600 text-white shadow-md ring-2 ring-indigo-400 ring-offset-2 dark:ring-offset-[#151f31]"
+                    : "bg-slate-100 hover:bg-slate-200 dark:bg-[#1e2a40] dark:hover:bg-[#283854]"
+                }`}
+              >
+                <span>{opt.emoji}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+          <span className="text-xs text-slate-500">Kendi Simgeni / Emojini Yaz:</span>
+          <input
+            type="text"
+            maxLength={4}
+            placeholder="Örn: 🦁"
+            value={customEmoji}
+            onChange={(e) => setCustomEmoji(e.target.value)}
+            className="w-20 rounded-xl border border-slate-200 px-2.5 py-1 text-center text-lg outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#0f1a2c]"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (customEmoji.trim()) {
+                handleSelectAvatar(customEmoji.trim());
+                setCustomEmoji("");
+              }
+            }}
+            disabled={!customEmoji.trim() || busyAvatar}
+            className="rounded-xl bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white transition disabled:opacity-40"
+          >
+            {busyAvatar ? "Kaydediliyor..." : "Uygula"}
+          </button>
+          {avatarSaved && (
+            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+              ✓ Simge güncellendi
+            </span>
+          )}
         </div>
       </Card>
 

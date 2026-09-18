@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, SectionTitle, Badge } from "@/components/ui";
+import UserAvatar from "@/components/UserAvatar";
 import { subscribeStudents, updateStudentSettings } from "@/lib/services/users";
 import { refreshParentView } from "@/lib/services/parent";
 import { addNote, deleteNote, subscribeNotes } from "@/lib/services/notes";
@@ -190,23 +191,31 @@ export default function StudentsPage() {
             <Card key={s.uid}>
               {/* Üst Kısım: Öğrenci Bilgisi ve Sınıf Rozeti */}
               <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-slate-800 dark:text-white">
-                      {s.displayName}
-                    </p>
-                    {s.grade && (
-                      <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
-                        {getGradeLabel(s.grade)}
-                      </span>
+                <div className="flex items-start gap-2.5">
+                  <UserAvatar
+                    icon={s.avatarIcon}
+                    role="STUDENT"
+                    name={s.displayName}
+                    size="sm"
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-slate-800 dark:text-white">
+                        {s.displayName}
+                      </p>
+                      {s.grade && (
+                        <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
+                          {getGradeLabel(s.grade)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500">{s.email}</p>
+                    {s.schoolName && (
+                      <p className="mt-0.5 text-[11px] text-slate-400">
+                        🏫 {s.schoolName}
+                      </p>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500">{s.email}</p>
-                  {s.schoolName && (
-                    <p className="mt-0.5 text-[11px] text-slate-400">
-                      🏫 {s.schoolName}
-                    </p>
-                  )}
                 </div>
 
                 <div className="flex flex-col items-end gap-1">
