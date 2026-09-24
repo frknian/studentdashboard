@@ -77,6 +77,10 @@ export function getDayOffset(dayStr: string): number {
 /**
  * Excel (.xlsx, .xls) veya CSV dosyasını okuyarak yapılandırılmış ders programı listesine çevirir.
  */
+/**
+ * Excel (.xlsx, .xls) veya CSV dosyasını okuyarak yapılandırılmış ders programı listesine çevirir.
+ * Hem satır satır liste (Gün, Saat, Ders...) hem de haftalık matris (Sütunlar: Pazartesi, Salı...) formatını destekler.
+ */
 export async function parseExcelSchedule(file: File): Promise<ParsedScheduleItem[]> {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array" });
@@ -94,14 +98,13 @@ export async function parseExcelSchedule(file: File): Promise<ParsedScheduleItem
     throw new Error("Excel tablosu boş veya okunamadı.");
   }
 
-  // 1. Önce standart sütunlu tablo formatını kontrol et (Gün, Saat, Ders...)
   const items: ParsedScheduleItem[] = [];
 
+  // FORMAT 1: Standart sütunlu tablo kontrolü (Gün, Saat, Ders...)
   for (let i = 0; i < rawRows.length; i++) {
     const row = rawRows[i];
     const keys = Object.keys(row);
 
-    // Anahtar isimlerini normalize et
     let dayVal = "";
     let timeVal = "";
     let durationVal = 60;
@@ -162,7 +165,6 @@ export async function parseExcelSchedule(file: File): Promise<ParsedScheduleItem
 
     if (subjectVal || dayVal) {
       const offset = getDayOffset(dayVal);
-      // Saat formatını temizle (örn: 17, 17:00, 17.00)
       let cleanTime = timeVal.replace(".", ":").trim();
       if (!cleanTime.includes(":")) {
         const h = parseInt(cleanTime, 10);
@@ -192,10 +194,325 @@ export async function parseExcelSchedule(file: File): Promise<ParsedScheduleItem
     return items;
   }
 
+  // FORMAT 2: Matris formatı (Sütunlar günler: Pazartesi, Salı, Çarşamba...)
+  // Örneğin: İlk sütun saat, diğer sütunlar günler
+  let matrixCount = 0;
+  for (let r = 0; r < rawRows.length; r++) {
+    const row = rawRows[r];
+    const keys = Object.keys(row);
+
+    // O satırdaki saat sütununu bul
+    let rowTime = "16:00";
+    for (const k of keys) {
+      const lk = k.toLowerCase().trim();
+      if (lk.includes("saat") || lk.includes("time") || lk.includes("etüt")) {
+        const val = String(row[k] ?? "").trim();
+        if (val) {
+          rowTime = val.replace(".", ":");
+          if (!rowTime.includes(":")) rowTime = `${rowTime}:00`;
+        }
+      }
+    }
+
+    // Gün sütunlarını tara
+    for (const k of keys) {
+      const offset = getDayOffset(k);
+      const val = String(row[k] ?? "").trim();
+      // Eğer bu sütun bir gün adıysa ve hücre doluysa
+      const isDayCol = Object.keys(DAY_NORM_MAP).some((dm) =>
+        k.toLowerCase().includes(dm)
+      );
+
+      if (isDayCol && val) {
+        items.push({
+          id: `matrix-${r}-${matrixCount++}-${Date.now()}`,
+          day: DAY_NAMES[offset],
+          dayOffset: offset,
+          time: rowTime,
+          durationMinutes: 60,
+          subject: val,
+        });
+      }
+    }
+  }
+
+  if (items.length > 0) {
+    items.sort((a, b) => a.dayOffset - b.dayOffset || a.time.localeCompare(b.time));
+    return items;
+  }
+
   throw new Error(
-    "Tablodan geçerli ders verisi okunamadı. Lütfen sütun başlıklarında Gün, Saat, Ders gibi ifadelerin yer aldığından emin olun veya örnek şablonu indirin."
+    "Tablodan geçerli ders verisi okunamadı. Lütfen sütun başlıklarında Gün, Saat, Ders gibi ifadelerin yer aldığından emin olun veya 'Örnek Excel Şablonunu İndir' butonuna tıklayarak hazır taslağı kullanın."
   );
 }
+
+/**
+ * WhatsApp, Word, Notlar veya kopyalanan tablo metnini akıllıca ayrıştırır.
+ * Hiçbir yapay zeka / API anahtarı gerekmez!
+ */
+export function parsePastedTextSchedule(text: string): ParsedScheduleItem[] {
+  if (!text || !text.trim()) {
+    throw new Error("Lütfen yapıştırılacak bir ders programı metni girin.");
+  }
+
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const items: ParsedScheduleItem[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // 1. Tablo kopyalama kontrolü (Tab ile ayrılmış değerler)
+    if (line.includes("\t")) {
+      const parts = line.split("\t").map((p) => p.trim());
+      if (parts.length >= 2) {
+        let dayVal = "";
+        let timeVal = "16:00";
+        let durVal = 60;
+        let subVal = "";
+        let topicVal = "";
+        let questVal = 0;
+
+        for (let pIdx = 0; pIdx < parts.length; pIdx++) {
+          const p = parts[pIdx];
+          if (!p) continue;
+          const isDay = Object.keys(DAY_NORM_MAP).some((d) =>
+            p.toLowerCase().includes(d)
+          );
+          if (isDay && !dayVal) {
+            dayVal = p;
+          } else if (/\b\d{1,2}[:.]\d{2}\b/.test(p)) {
+            timeVal = p.replace(".", ":");
+          } else if (/^\d+$/.test(p)) {
+            const num = parseInt(p, 10);
+            if (num > 0 && num <= 180) durVal = num;
+            else if (num > 180) questVal = num;
+          } else if (!subVal) {
+            subVal = p;
+          } else if (!topicVal) {
+            topicVal = p;
+          }
+        }
+
+        if (subVal || dayVal) {
+          const offset = getDayOffset(dayVal);
+          items.push({
+            id: `paste-tab-${i}-${Date.now()}`,
+            day: DAY_NAMES[offset],
+            dayOffset: offset,
+            time: timeVal,
+            durationMinutes: durVal,
+            subject: subVal || "Ders",
+            topic: topicVal || undefined,
+            targetQuestions: questVal || undefined,
+          });
+          continue;
+        }
+      }
+    }
+
+    // 2. Doğal metin analizi (Örn: "Pazartesi 17:00 Matematik Üslü Sayılar 40 soru")
+    let day = "Pazartesi";
+    let dayOffset = 0;
+    let foundDay = false;
+
+    // Gün tespit et
+    for (const [key, offset] of Object.entries(DAY_NORM_MAP)) {
+      const regex = new RegExp(`\\b${key}\\b`, "i");
+      if (regex.test(line)) {
+        day = DAY_NAMES[offset];
+        dayOffset = offset;
+        foundDay = true;
+        break;
+      }
+    }
+
+    // Saat tespit et (17:00, 17.30 vb.)
+    let time = "16:00";
+    const timeMatch = line.match(/\b(\d{1,2})[:.](\d{2})\b/);
+    if (timeMatch) {
+      const hh = String(parseInt(timeMatch[1], 10)).padStart(2, "0");
+      const mm = timeMatch[2];
+      time = `${hh}:${mm}`;
+    }
+
+    // Süre tespit et (40 dk, 60 dakika vb.)
+    let duration = 60;
+    const durMatch = line.match(/(\d+)\s*(dk|dakika|min)/i);
+    if (durMatch) {
+      duration = parseInt(durMatch[1], 10) || 60;
+    }
+
+    // Hedef soru tespit et (50 soru, 40 test vb.)
+    let targetQuestions: number | undefined;
+    const qMatch = line.match(/(\d+)\s*(soru|test)/i);
+    if (qMatch) {
+      targetQuestions = parseInt(qMatch[1], 10);
+    }
+
+    // Kalan metinden ders ve konu adını ayıkla
+    let cleaned = line
+      .replace(/\b(\d{1,2})[:.](\d{2})\b/g, "")
+      .replace(/(\d+)\s*(dk|dakika|min)/gi, "")
+      .replace(/(\d+)\s*(soru|test)/gi, "")
+      .replace(/[-–—:|]/g, " ")
+      .trim();
+
+    // Gün adını temizle
+    for (const key of Object.keys(DAY_NORM_MAP)) {
+      cleaned = cleaned.replace(new RegExp(`\\b${key}\\b`, "gi"), "");
+    }
+    cleaned = cleaned.replace(/\s+/g, " ").trim();
+
+    // Yaygın ders isimlerini kontrol et
+    const POPULAR_SUBJECTS = [
+      "Matematik",
+      "Geometri",
+      "Fizik",
+      "Kimya",
+      "Biyoloji",
+      "Türkçe",
+      "Edebiyat",
+      "Tarih",
+      "Coğrafya",
+      "Felsefe",
+      "Din Kültürü",
+      "İngilizce",
+      "Fen Bilimleri",
+      "Sosyal Bilgiler",
+      "LGS Deneme",
+      "TYT Deneme",
+      "AYT Deneme",
+    ];
+
+    let detectedSubject = "";
+    let detectedTopic = "";
+
+    for (const s of POPULAR_SUBJECTS) {
+      const sReg = new RegExp(`\\b${s}\\b`, "i");
+      if (sReg.test(cleaned)) {
+        detectedSubject = s;
+        detectedTopic = cleaned.replace(sReg, "").trim();
+        break;
+      }
+    }
+
+    if (!detectedSubject) {
+      // İlk kelimeyi ders adı, kalanını konu yap
+      const words = cleaned.split(" ").filter(Boolean);
+      if (words.length > 0) {
+        detectedSubject = words[0];
+        detectedTopic = words.slice(1).join(" ");
+      } else {
+        detectedSubject = "Ders Çalışma";
+      }
+    }
+
+    if (foundDay || detectedSubject) {
+      items.push({
+        id: `paste-line-${i}-${Date.now()}`,
+        day,
+        dayOffset,
+        time,
+        durationMinutes: duration,
+        subject: detectedSubject,
+        topic: detectedTopic || undefined,
+        targetQuestions,
+      });
+    }
+  }
+
+  if (items.length > 0) {
+    items.sort((a, b) => a.dayOffset - b.dayOffset || a.time.localeCompare(b.time));
+    return items;
+  }
+
+  throw new Error(
+    "Metinden herhangi bir ders veya gün çıkarılamadı. Örnek: 'Pazartesi 17:00 Matematik Üslü Sayılar' şeklinde satır satır yazabilir veya Excel tablosunu doğrudan yapıştırabilirsiniz."
+  );
+}
+
+/**
+ * 1 Tıkla Haftalık Hazır Boş Şablon Getirir (Pazartesi - Pazar)
+ */
+export function getEmptyWeeklyTemplate(): ParsedScheduleItem[] {
+  return [
+    {
+      id: `tmpl-0-${Date.now()}`,
+      day: "Pazartesi",
+      dayOffset: 0,
+      time: "17:00",
+      durationMinutes: 60,
+      subject: "Matematik",
+      topic: "",
+      targetQuestions: 40,
+    },
+    {
+      id: `tmpl-1-${Date.now()}`,
+      day: "Salı",
+      dayOffset: 1,
+      time: "17:00",
+      durationMinutes: 60,
+      subject: "Fizik",
+      topic: "",
+      targetQuestions: 30,
+    },
+    {
+      id: `tmpl-2-${Date.now()}`,
+      day: "Çarşamba",
+      dayOffset: 2,
+      time: "16:00",
+      durationMinutes: 60,
+      subject: "Türkçe",
+      topic: "",
+      targetQuestions: 40,
+    },
+    {
+      id: `tmpl-3-${Date.now()}`,
+      day: "Perşembe",
+      dayOffset: 3,
+      time: "17:30",
+      durationMinutes: 60,
+      subject: "Kimya",
+      topic: "",
+      targetQuestions: 30,
+    },
+    {
+      id: `tmpl-4-${Date.now()}`,
+      day: "Cuma",
+      dayOffset: 4,
+      time: "18:00",
+      durationMinutes: 60,
+      subject: "Biyoloji",
+      topic: "",
+      targetQuestions: 30,
+    },
+    {
+      id: `tmpl-5-${Date.now()}`,
+      day: "Cumartesi",
+      dayOffset: 5,
+      time: "10:30",
+      durationMinutes: 90,
+      subject: "Geometri",
+      topic: "",
+      targetQuestions: 50,
+    },
+    {
+      id: `tmpl-6-${Date.now()}`,
+      day: "Pazar",
+      dayOffset: 6,
+      time: "14:00",
+      durationMinutes: 60,
+      subject: "Haftalık Deneme",
+      topic: "Deneme Analizi",
+      targetQuestions: 90,
+    },
+  ];
+}
+
 
 /**
  * Örnek Excel Ders Programı Şablonu Üretir ve İndirir
