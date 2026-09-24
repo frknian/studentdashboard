@@ -108,6 +108,37 @@ export default function ScheduleImportModal({
     return `${startStr} - ${endStr}`;
   }, [targetMonday, weekOffset]);
 
+  // Tabloda tespit edilen tarih aralığı (10-15 günlük veya çok haftalık programlar için)
+  const dateRangeInfo = useMemo(() => {
+    if (!parsedItems || parsedItems.length === 0) return null;
+    const datesWithValues = parsedItems
+      .map((i) => i.date)
+      .filter((d): d is string => !!d && /^\d{4}-\d{2}-\d{2}$/.test(d))
+      .sort();
+    if (datesWithValues.length === 0) return null;
+    const first = datesWithValues[0];
+    const last = datesWithValues[datesWithValues.length - 1];
+    const distinctDays = new Set(datesWithValues).size;
+    return {
+      first,
+      last,
+      distinctDays,
+      hasMultiDays: distinctDays > 1,
+      allHaveDates: datesWithValues.length === parsedItems.length,
+    };
+  }, [parsedItems]);
+
+  function formatTrDate(iso?: string): string {
+    if (!iso) return "";
+    try {
+      const [y, m, d] = iso.split("-").map(Number);
+      const dt = new Date(y, m - 1, d);
+      return `${dt.getDate()} ${dt.toLocaleDateString("tr-TR", { month: "short" })} ${dt.getFullYear()}`;
+    } catch {
+      return iso;
+    }
+  }
+
   if (!isOpen) return null;
 
   const selectedStudent = students.find((s) => s.uid === selectedStudentId);
@@ -172,6 +203,29 @@ export default function ScheduleImportModal({
     localStorage.setItem("gemini_user_api_key", cleaned);
   }
 
+  function handleDateChange(index: number, newDate: string) {
+    if (!parsedItems) return;
+    const copy = [...parsedItems];
+    if (newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+      const [y, m, d] = newDate.split("-").map(Number);
+      const jsD = new Date(y, m - 1, d);
+      const jsDay = jsD.getDay();
+      const dayOffset = jsDay === 0 ? 6 : jsDay - 1;
+      copy[index] = {
+        ...copy[index],
+        date: newDate,
+        day: DAY_NAMES[dayOffset],
+        dayOffset,
+      };
+    } else {
+      copy[index] = {
+        ...copy[index],
+        date: undefined,
+      };
+    }
+    setParsedItems(copy);
+  }
+
   function handleItemChange(
     index: number,
     field: keyof ParsedScheduleItem,
@@ -201,10 +255,16 @@ export default function ScheduleImportModal({
   }
 
   function handleAddItem() {
+    const lastItem =
+      parsedItems && parsedItems.length > 0
+        ? parsedItems[parsedItems.length - 1]
+        : null;
+
     const newItem: ParsedScheduleItem = {
       id: `manual-${Date.now()}`,
-      day: "Pazartesi",
-      dayOffset: 0,
+      date: lastItem?.date,
+      day: lastItem?.day || "Pazartesi",
+      dayOffset: lastItem?.dayOffset ?? 0,
       time: "16:00",
       durationMinutes: 60,
       subject: "Matematik",
@@ -312,35 +372,49 @@ export default function ScheduleImportModal({
 
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                Program Başlangıç Haftası
+                {dateRangeInfo ? "Program Tarih Kapsamı" : "Program Başlangıç Haftası"}
               </label>
-              <div className="flex gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setWeekOffset(0)}
-                  className={`flex-1 rounded-xl px-2.5 py-2 text-xs font-semibold border transition-all ${
-                    weekOffset === 0
-                      ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
-                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
-                  }`}
-                >
-                  Bu Hafta
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setWeekOffset(1)}
-                  className={`flex-1 rounded-xl px-2.5 py-2 text-xs font-semibold border transition-all ${
-                    weekOffset === 1
-                      ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
-                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
-                  }`}
-                >
-                  Gelecek Hafta
-                </button>
-              </div>
-              <p className="text-[11px] text-slate-500 mt-1 font-medium">
-                📅 {weekLabel}
-              </p>
+              {dateRangeInfo ? (
+                <div className="rounded-xl border border-indigo-200 bg-indigo-50/80 p-2 text-xs text-indigo-950 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <Calendar size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                    <span>{formatTrDate(dateRangeInfo.first)} – {formatTrDate(dateRangeInfo.last)}</span>
+                  </div>
+                  <p className="text-[11px] text-indigo-700 dark:text-indigo-300 mt-0.5 font-medium">
+                    {dateRangeInfo.distinctDays} Günlük Uzun Program (Gerçek tarihlere göre dağıtılacak)
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setWeekOffset(0)}
+                      className={`flex-1 rounded-xl px-2.5 py-2 text-xs font-semibold border transition-all ${
+                        weekOffset === 0
+                          ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      Bu Hafta
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWeekOffset(1)}
+                      className={`flex-1 rounded-xl px-2.5 py-2 text-xs font-semibold border transition-all ${
+                        weekOffset === 1
+                          ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      Gelecek Hafta
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1 font-medium">
+                    📅 {weekLabel}
+                  </p>
+                </>
+              )}
             </div>
 
             <div className="sm:col-span-2">
@@ -641,9 +715,9 @@ export default function ScheduleImportModal({
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 dark:bg-slate-800/80 sticky top-0 border-b border-slate-200 dark:border-slate-800 text-slate-500">
                     <tr>
-                      <th className="p-2.5 font-semibold">Gün</th>
-                      <th className="p-2.5 font-semibold">Saat</th>
-                      <th className="p-2.5 font-semibold">Süre (Dk)</th>
+                      <th className="p-2.5 font-semibold w-36">Tarih & Gün</th>
+                      <th className="p-2.5 font-semibold w-24">Saat</th>
+                      <th className="p-2.5 font-semibold w-20">Süre (Dk)</th>
                       <th className="p-2.5 font-semibold">Ders Adı</th>
                       <th className="p-2.5 font-semibold">Konu / Hedef</th>
                       <th className="p-2.5 font-semibold w-16">Soru</th>
@@ -654,17 +728,20 @@ export default function ScheduleImportModal({
                     {parsedItems.map((item, idx) => (
                       <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
                         <td className="p-2">
-                          <select
-                            value={item.day}
-                            onChange={(e) => handleItemChange(idx, "day", e.target.value)}
-                            className="w-full rounded-lg border border-slate-200 p-1.5 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
-                          >
-                            {DAY_NAMES.map((d) => (
-                              <option key={d} value={d}>
-                                {d}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="flex flex-col gap-1 min-w-[130px]">
+                            <input
+                              type="date"
+                              value={item.date || ""}
+                              onChange={(e) => handleDateChange(idx, e.target.value)}
+                              className="rounded-lg border border-slate-200 p-1 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
+                            />
+                            <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold px-0.5">
+                              <span>{item.day}</span>
+                              {item.date && (
+                                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">Tarihli</span>
+                              )}
+                            </div>
+                          </div>
                         </td>
                         <td className="p-2">
                           <input
@@ -756,6 +833,8 @@ export default function ScheduleImportModal({
               )}
               {importing
                 ? "Takvime Aktarılıyor..."
+                : dateRangeInfo
+                ? `${parsedItems.length} Dersi (${dateRangeInfo.distinctDays} Günlük) Takvime Dağıt`
                 : `${parsedItems.length} Dersi Takvime & Programa Dağıt`}
             </button>
           )}
