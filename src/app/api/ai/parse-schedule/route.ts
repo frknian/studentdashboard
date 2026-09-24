@@ -10,16 +10,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Dosya bulunamadı." }, { status: 400 });
     }
 
-    const apiKey =
+    const apiKey = (
       clientApiKey ||
       process.env.GEMINI_API_KEY ||
-      process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
+      ""
+    ).replace(/['"\s]/g, "");
 
     if (!apiKey) {
       return NextResponse.json(
         {
           error:
-            "Gemini API Anahtarı bulunamadı. Lütfen modal üzerinden veya Ayarlar'dan Gemini API anahtarınızı girin.",
+            "Gemini API Anahtarı bulunamadı. Lütfen aşağıdaki kutucuğa Google AI Studio'dan (aistudio.google.com) aldığınız ücretsiz API anahtarınızı yapıştırıp 'Tekrar Dene' butonuna tıklayın.",
         },
         { status: 400 }
       );

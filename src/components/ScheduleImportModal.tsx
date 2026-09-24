@@ -112,7 +112,7 @@ export default function ScheduleImportModal({
 
   const selectedStudent = students.find((s) => s.uid === selectedStudentId);
 
-  async function handleFileSelected(f: File | null) {
+  async function handleFileSelected(f: File | null, customKey?: string) {
     if (!f) return;
     setFile(f);
     setError(null);
@@ -132,7 +132,8 @@ export default function ScheduleImportModal({
         const items = await parseExcelSchedule(f);
         setParsedItems(items);
       } else if (isImageOrPdf) {
-        const keyToUse = geminiApiKey.trim() || undefined;
+        const rawKey = customKey ?? geminiApiKey;
+        const keyToUse = rawKey.replace(/['"\s]/g, "") || undefined;
         const items = await parseAISchedule({ file: f, apiKey: keyToUse });
         setParsedItems(items);
       } else {
@@ -145,7 +146,8 @@ export default function ScheduleImportModal({
       setError(msg);
       if (
         msg.toLowerCase().includes("gemini") ||
-        msg.toLowerCase().includes("api anahtarı")
+        msg.toLowerCase().includes("api anahtarı") ||
+        msg.toLowerCase().includes("bulunamadı")
       ) {
         setShowApiKeyInput(true);
       }
@@ -155,8 +157,9 @@ export default function ScheduleImportModal({
   }
 
   function handleSaveApiKey(val: string) {
-    setGeminiApiKey(val);
-    localStorage.setItem("gemini_user_api_key", val.trim());
+    const cleaned = val.replace(/['"\s]/g, "");
+    setGeminiApiKey(cleaned);
+    localStorage.setItem("gemini_user_api_key", cleaned);
   }
 
   function handleItemChange(
@@ -399,8 +402,36 @@ export default function ScheduleImportModal({
                 type="file"
                 accept=".xlsx,.xls,.csv,.pdf,image/*"
                 className="hidden"
+                onClick={(e) => {
+                  (e.target as HTMLInputElement).value = "";
+                }}
                 onChange={(e) => handleFileSelected(e.target.files?.[0] ?? null)}
               />
+
+              {file && (
+                <div className="flex items-center justify-between rounded-xl bg-indigo-50/70 p-3 text-xs dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
+                  <div className="flex items-center gap-2 truncate pr-2">
+                    <FileText size={18} className="text-indigo-600 shrink-0 dark:text-indigo-400" />
+                    <div className="truncate">
+                      <p className="font-bold text-slate-800 dark:text-slate-100 truncate">
+                        {file.name}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        {(file.size / 1024).toFixed(0)} KB • Hazır
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={analyzing}
+                    onClick={() => handleFileSelected(file)}
+                    className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shrink-0 shadow-xs text-xs"
+                  >
+                    {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                    {analyzing ? "Analiz Ediliyor..." : "Yeniden Analiz Et"}
+                  </button>
+                </div>
+              )}
 
               <div
                 onClick={() => fileInputRef.current?.click()}
@@ -429,7 +460,7 @@ export default function ScheduleImportModal({
                     </div>
                     <div>
                       <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                        Ders Programı Dosyanızı Sürükleyin veya Seçin
+                        {file ? "Farklı Bir Dosya Seçin" : "Ders Programı Dosyanızı Sürükleyin veya Seçin"}
                       </p>
                       <p className="text-xs text-slate-500 mt-1">
                         Excel (.xlsx, .xls, .csv), PDF Belgesi veya Görsel (Fotoğraf/Ekran Görüntüsü)
@@ -456,13 +487,13 @@ export default function ScheduleImportModal({
                   className="flex items-center gap-1 text-slate-500 hover:text-slate-700 dark:text-slate-400"
                 >
                   <Key size={13} />
-                  {geminiApiKey ? "Gemini API Anahtarı Ayarlı ✓" : "Görsel/PDF için API Anahtarı Gir..."}
+                  {geminiApiKey ? "Gemini API Anahtarı Ayarlı (Değiştir)" : "Görsel/PDF için API Anahtarı Gir..."}
                 </button>
               </div>
 
               {/* İsteğe Bağlı API Anahtarı Girişi */}
               {showApiKeyInput && (
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs dark:bg-amber-950/30 dark:border-amber-900/40">
+                <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs dark:bg-amber-950/30 dark:border-amber-900/40">
                   <label className="block font-bold text-amber-900 dark:text-amber-200 mb-1">
                     Google Gemini API Anahtarı (Görsel ve PDF Analizi İçin)
                   </label>
@@ -474,9 +505,26 @@ export default function ScheduleImportModal({
                       onChange={(e) => handleSaveApiKey(e.target.value)}
                       className="flex-1 rounded-lg border border-amber-300 p-2 text-xs outline-none bg-white dark:bg-slate-900 dark:border-amber-800"
                     />
+                    <button
+                      type="button"
+                      disabled={analyzing || !geminiApiKey.trim()}
+                      onClick={() => {
+                        const cleaned = geminiApiKey.replace(/['"\s]/g, "");
+                        handleSaveApiKey(cleaned);
+                        if (file) {
+                          handleFileSelected(file, cleaned);
+                        } else {
+                          fileInputRef.current?.click();
+                        }
+                      }}
+                      className="rounded-lg bg-amber-600 px-3 py-2 font-semibold text-white hover:bg-amber-700 disabled:opacity-50 shrink-0 transition-colors shadow-xs text-xs flex items-center gap-1.5"
+                    >
+                      {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                      {file ? "Kaydet & Analiz Et" : "Kaydet"}
+                    </button>
                   </div>
                   <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">
-                    Google AI Studio üzerinden ücretsiz API anahtarınızı alabilirsiniz. Tarayıcınızda güvenle saklanır.
+                    Google AI Studio üzerinden (aistudio.google.com) ücretsiz API anahtarınızı alabilirsiniz. Tarayıcınızda saklanır.
                   </p>
                 </div>
               )}
@@ -490,6 +538,17 @@ export default function ScheduleImportModal({
               <div className="flex-1">
                 <p className="font-semibold">Ayrıştırma Hatası</p>
                 <p className="mt-0.5">{error}</p>
+                {file && (
+                  <button
+                    type="button"
+                    disabled={analyzing}
+                    onClick={() => handleFileSelected(file)}
+                    className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors shadow-xs"
+                  >
+                    {analyzing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    Tekrar Dene
+                  </button>
+                )}
               </div>
             </div>
           )}
