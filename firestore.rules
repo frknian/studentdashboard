@@ -63,11 +63,15 @@ service cloud.firestore {
             || request.auth.uid == resource.data.studentId);
       allow create: if signedIn()
         && request.auth.uid == request.resource.data.studentId;
-      // Yalnızca durum (OPEN/RESOLVED) değiştirilebilir
       allow update: if signedIn()
-        && (request.auth.uid == resource.data.teacherId
-            || request.auth.uid == resource.data.studentId)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+        && (
+          (request.auth.uid == resource.data.teacherId
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['status', 'solutionImageData', 'solutionText', 'solvedAt']))
+          || (request.auth.uid == resource.data.studentId
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['status']))
+        );
       allow delete: if isTeacher() && request.auth.uid == resource.data.teacherId;
     }
 

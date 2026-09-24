@@ -73,9 +73,57 @@ export async function uploadQuestion(data: {
 }
 
 export async function resolveQuestion(questionId: string): Promise<void> {
-  await updateDoc(doc(db(), "questions", questionId), { status: "RESOLVED" });
+  await updateDoc(doc(db(), "questions", questionId), {
+    status: "RESOLVED",
+    solvedAt: serverTimestamp(),
+  });
 }
 
 export async function reopenQuestion(questionId: string): Promise<void> {
   await updateDoc(doc(db(), "questions", questionId), { status: "OPEN" });
 }
+
+export async function saveQuestionSolution(params: {
+  questionId: string;
+  solutionFile?: File | null;
+  solutionText?: string;
+  existingImageData?: string;
+}): Promise<void> {
+  let solutionImageData = params.existingImageData || "";
+
+  if (params.solutionFile) {
+    const compressed = await imageCompression(params.solutionFile, {
+      maxSizeMB: 0.12,
+      maxWidthOrHeight: 1200,
+      useWebWorker: true,
+      fileType: "image/jpeg",
+    });
+    solutionImageData = await blobToDataUrl(compressed);
+    if (solutionImageData.length > 900_000) {
+      throw new Error("Çözüm fotoğrafı çok büyük, lütfen daha küçük bir kare çekin.");
+    }
+  }
+
+  const payload: Record<string, unknown> = {
+    status: "RESOLVED",
+    solvedAt: serverTimestamp(),
+  };
+
+  if (solutionImageData) {
+    payload.solutionImageData = solutionImageData;
+  }
+  if (params.solutionText !== undefined) {
+    payload.solutionText = params.solutionText.trim();
+  }
+
+  await updateDoc(doc(db(), "questions", params.questionId), payload);
+}
+
+export async function deleteQuestionSolution(questionId: string): Promise<void> {
+  await updateDoc(doc(db(), "questions", questionId), {
+    solutionImageData: null,
+    solutionText: null,
+    status: "OPEN",
+  });
+}
+

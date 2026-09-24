@@ -111,6 +111,9 @@ export interface QuestionItem {
   note: string;
   status: "OPEN" | "RESOLVED";
   createdAt?: Timestamp;
+  solutionImageData?: string; // Öğretmenin yüklediği çözüm görseli (base64)
+  solutionText?: string;      // Öğretmenin çözüm açıklaması / cevabı
+  solvedAt?: Timestamp;       // Çözüm tarihi
 }
 
 export type PlanType = "DAILY" | "WEEKLY" | "MONTHLY";
