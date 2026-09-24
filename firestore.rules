@@ -134,8 +134,7 @@ service cloud.firestore {
     match /parentViews/{token} {
       allow get: if true;
       allow list: if false;
-      allow write: if isTeacher()
-        && request.resource.data.teacherId == request.auth.uid;
+      allow write: if isTeacher();
     }
 
     match /notifications/{notificationId} {

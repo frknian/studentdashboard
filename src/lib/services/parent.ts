@@ -8,7 +8,7 @@ import {
   setDoc,
   where,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import type {
   ExamResult,
   Lesson,
@@ -226,16 +226,18 @@ export async function refreshParentView(studentId: string): Promise<void> {
     dueDate: t.dueDate ? t.dueDate.toDate().toISOString() : undefined,
   }));
 
+  const currentTeacherId = auth().currentUser?.uid || student.teacherId || "";
+
   const view: Omit<ParentView, "updatedAt"> = {
     token: student.parentToken,
     studentId,
-    teacherId: student.teacherId ?? "",
+    teacherId: currentTeacherId,
     studentName: student.displayName,
-    avatarIcon: student.avatarIcon,
+    avatarIcon: student.avatarIcon || "",
     grade: student.grade,
-    enrolledSubjects: studentSubs,
-    schoolName: student.schoolName,
-    targetGroup: student.targetGroup,
+    enrolledSubjects: studentSubs || [],
+    schoolName: student.schoolName || "",
+    targetGroup: student.targetGroup || "LGS",
     weeklyCompleted: tasks.reduce((s, t) => s + t.completedQuestions, 0),
     weeklyTarget:
       student.weeklyTarget ?? tasks.reduce((s, t) => s + t.targetQuestions, 0),
@@ -277,13 +279,22 @@ export async function refreshParentView(studentId: string): Promise<void> {
   };
 
   try {
+    // undefined değerleri temizle
+    const cleanView = JSON.parse(JSON.stringify(view));
     await setDoc(doc(db(), "parentViews", student.parentToken), {
-      ...view,
+      ...cleanView,
       updatedAt: serverTimestamp(),
     });
-  } catch {
+  } catch (err: unknown) {
+    console.error("parentViews setDoc failed:", err);
+    const detail =
+      err && typeof err === "object" && "message" in err
+        ? String((err as { message: string }).message)
+        : err && typeof err === "object" && "code" in err
+        ? String((err as { code: string }).code)
+        : "Firestore kuralları konsolda güncel değil";
     throw new Error(
-      "ADIM-2: parentViews yazılamadı (Firestore kuralları konsolda güncel değil)"
+      `ADIM-2: parentViews yazılamadı (${detail})`
     );
   }
 }
