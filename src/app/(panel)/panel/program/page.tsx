@@ -8,12 +8,14 @@ import {
   Circle,
   FileDown,
   Plus,
+  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge, Card } from "@/components/ui";
 import StudentPicker from "@/components/StudentPicker";
+import ScheduleImportModal from "@/components/ScheduleImportModal";
 import {
   addPlan,
   completePlan,
@@ -544,6 +546,7 @@ export default function ProgramPage() {
   const { profile } = useAuth();
   const [students, setStudents] = useState<UserProfile[]>([]);
   const [selectedStudent, setSelectedStudent] = useState("");
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const isTeacher = profile?.role === "TEACHER";
 
@@ -557,7 +560,22 @@ export default function ProgramPage() {
   if (isTeacher) {
     return (
       <div>
-        <h1 className="text-xl font-bold">Program Oluştur</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold">Program Oluştur</h1>
+            <p className="text-xs text-slate-500">
+              Öğrencinize haftalık ders çalışma hedefleri ve planı belirleyin
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 transition-colors shadow-xs w-fit"
+          >
+            <Sparkles size={14} /> Program İçe Aktar (Excel / PDF / Görsel)
+          </button>
+        </div>
+
         <div className="mt-4">
           <StudentPicker
             students={students}
@@ -580,6 +598,14 @@ export default function ProgramPage() {
             </p>
           </Card>
         )}
+
+        <ScheduleImportModal
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          students={students}
+          initialStudentId={selectedStudent}
+          initialImportMode="STUDY_PLAN"
+        />
       </div>
     );
   }

@@ -19,6 +19,7 @@ import {
   X,
   CalendarDays,
   Clock,
+  Sparkles,
 } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,6 +27,7 @@ import { Badge, Card } from "@/components/ui";
 import UserAvatar from "@/components/UserAvatar";
 import StudentPicker from "@/components/StudentPicker";
 import PostLessonModal from "@/components/PostLessonModal";
+import ScheduleImportModal from "@/components/ScheduleImportModal";
 import {
   addLesson,
   subscribeLessonsForStudent,
@@ -507,6 +509,7 @@ export default function CalendarPage() {
 
   const [calendarView, setCalendarView] = useState<"flow" | "schedule">("flow");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "CONFIRMED" | "COMPLETED" | "PENDING">("ALL");
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const visibleLessons = useMemo(() => {
     let list = lessons;
@@ -674,12 +677,21 @@ export default function CalendarPage() {
           </p>
         </div>
         {isTeacher && (
-          <button
-            onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700"
-          >
-            <Plus size={15} /> Ders Ekle
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowImportModal(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 transition-colors shadow-xs"
+            >
+              <Sparkles size={14} /> Program İçe Aktar
+            </button>
+            <button
+              onClick={() => setShowForm((v) => !v)}
+              className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700"
+            >
+              <Plus size={15} /> Ders Ekle
+            </button>
+          </div>
         )}
       </div>
 
@@ -1336,6 +1348,14 @@ export default function CalendarPage() {
           onSaved={() => afterMutation(postLessonFor.studentId)}
         />
       )}
+
+      <ScheduleImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        students={students}
+        initialStudentId={selectedStudent}
+        initialImportMode="LESSONS"
+      />
     </div>
   );
 }
