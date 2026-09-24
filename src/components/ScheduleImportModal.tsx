@@ -5,19 +5,18 @@ import {
   AlertCircle,
   Calendar,
   CheckCircle2,
-  Clipboard,
   Clock,
   Download,
   FileSpreadsheet,
   FileText,
   Image as ImageIcon,
+  Key,
   Loader2,
   Plus,
   Sparkles,
   Trash2,
   UploadCloud,
   X,
-  ZoomIn,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import StudentPicker from "@/components/StudentPicker";
@@ -26,8 +25,9 @@ import {
   downloadSampleScheduleExcel,
   executeScheduleImport,
   getEmptyWeeklyTemplate,
+  getSampleBlockScheduleTemplate,
+  parseAISchedule,
   parseExcelSchedule,
-  parsePastedTextSchedule,
   type ParsedScheduleItem,
 } from "@/lib/services/scheduleImport";
 import { addDays, mondayOf } from "@/lib/utils";
@@ -42,21 +42,17 @@ interface Props {
   onSuccess?: () => void;
 }
 
-type TabType = "EXCEL" | "PASTE" | "IMAGE_REF";
-
 export default function ScheduleImportModal({
   isOpen,
   onClose,
   students,
   initialStudentId,
-  initialImportMode = "LESSONS",
+  initialImportMode = "STUDY_PLAN",
   onSuccess,
 }: Props) {
   const { profile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
 
-  const [activeTab, setActiveTab] = useState<TabType>("EXCEL");
   const [selectedStudentId, setSelectedStudentId] = useState(
     initialStudentId || students[0]?.uid || ""
   );
@@ -67,13 +63,16 @@ export default function ScheduleImportModal({
   // Hafta seçimi: 0: bu hafta, 1: gelecek hafta, 2: iki hafta sonra
   const [weekOffset, setWeekOffset] = useState<number>(0);
 
-  // Dosya & Metin state'leri
+  // Dosya & Ayrıştırma state'leri
   const [file, setFile] = useState<File | null>(null);
-  const [pastedText, setPastedText] = useState("");
   const [imagePreview, setImagePreview] = useState<string>("");
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [parsedItems, setParsedItems] = useState<ParsedScheduleItem[] | null>(null);
+
+  // Gemini API Key state'i
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   // Aktarma durumu
   const [importing, setImporting] = useState(false);
@@ -87,6 +86,11 @@ export default function ScheduleImportModal({
       setSelectedStudentId(students[0].uid);
     }
   }, [initialStudentId, students, selectedStudentId]);
+
+  useEffect(() => {
+    const savedKey = localStorage.getItem("gemini_user_api_key") || "";
+    setGeminiApiKey(savedKey);
+  }, []);
 
   // Hedef Pazartesi tarihi
   const targetMonday = useMemo(() => {
@@ -108,8 +112,8 @@ export default function ScheduleImportModal({
 
   const selectedStudent = students.find((s) => s.uid === selectedStudentId);
 
-  // Excel dosyasını yerel olarak oku (API'sız)
-  async function handleExcelSelected(f: File | null) {
+  // Dosya analizi (Excel veya Görsel/PDF)
+  async function handleFileSelected(f: File | null, customKey?: string) {
     if (!f) return;
     setFile(f);
     setError(null);
@@ -117,49 +121,55 @@ export default function ScheduleImportModal({
     setImportSuccess(null);
     setAnalyzing(true);
 
+    const ext = f.name.split(".").pop()?.toLowerCase() || "";
+    const isExcel = ["xlsx", "xls", "csv"].includes(ext);
+    const isImageOrPdf =
+      ["png", "jpg", "jpeg", "webp", "pdf"].includes(ext) ||
+      f.type.startsWith("image/") ||
+      f.type === "application/pdf";
+
+    if (f.type.startsWith("image/")) {
+      setImagePreview(URL.createObjectURL(f));
+    } else {
+      setImagePreview("");
+    }
+
     try {
-      const items = await parseExcelSchedule(f);
-      setParsedItems(items);
+      if (isExcel) {
+        // Universal Excel Parser (Blok 1, Blok 2, Tarih, Gün her türlü tabloyu tanır)
+        const items = await parseExcelSchedule(f);
+        setParsedItems(items);
+      } else if (isImageOrPdf) {
+        // Yapay Zeka Vision Analizi
+        const rawKey = customKey ?? geminiApiKey;
+        const keyToUse = rawKey.replace(/['"\s]/g, "") || undefined;
+        const items = await parseAISchedule({ file: f, apiKey: keyToUse });
+        setParsedItems(items);
+      } else {
+        throw new Error(
+          "Desteklenmeyen dosya türü. Lütfen Excel (.xlsx), CSV, PDF veya görsel (.png, .jpg) yükleyin."
+        );
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg);
+      if (
+        isImageOrPdf &&
+        (msg.toLowerCase().includes("gemini") ||
+          msg.toLowerCase().includes("api anahtarı") ||
+          msg.toLowerCase().includes("bulunamadı"))
+      ) {
+        setShowApiKeyInput(true);
+      }
     } finally {
       setAnalyzing(false);
     }
   }
 
-  // Yapıştırılan metni yerel olarak ayrıştır (API'sız)
-  function handleParsePastedText() {
-    if (!pastedText.trim()) {
-      setError("Lütfen yapıştırılacak bir program metni girin.");
-      return;
-    }
-    setError(null);
-    try {
-      const items = parsePastedTextSchedule(pastedText);
-      setParsedItems(items);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setError(msg);
-    }
-  }
-
-  // Görsel veya PDF referansı seçildiğinde
-  function handleImageSelected(f: File | null) {
-    if (!f) return;
-    setFile(f);
-    setError(null);
-    setImagePreview(URL.createObjectURL(f));
-    // Eğer henüz tablo oluşturulmamışsa otomatik haftalık taslak getir
-    if (!parsedItems || parsedItems.length === 0) {
-      setParsedItems(getEmptyWeeklyTemplate());
-    }
-  }
-
-  // 1 Tıkla Haftalık Boş Şablon Getir
-  function handleLoadWeeklyTemplate() {
-    setError(null);
-    setParsedItems(getEmptyWeeklyTemplate());
+  function handleSaveApiKey(val: string) {
+    const cleaned = val.replace(/['"\s]/g, "");
+    setGeminiApiKey(cleaned);
+    localStorage.setItem("gemini_user_api_key", cleaned);
   }
 
   function handleItemChange(
@@ -253,12 +263,10 @@ export default function ScheduleImportModal({
   function resetForm() {
     setFile(null);
     setImagePreview("");
-    setPastedText("");
     setParsedItems(null);
     setError(null);
     setImportSuccess(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
-    if (imageInputRef.current) imageInputRef.current.value = "";
   }
 
   return (
@@ -268,14 +276,14 @@ export default function ScheduleImportModal({
         <div className="flex items-center justify-between border-b border-slate-100 p-4 sm:p-5 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
           <div className="flex items-center gap-2.5">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-              <Calendar size={20} />
+              <Sparkles size={20} />
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                Ders Programını Takvime Dağıt
+                Ders & Çalışma Programı İçe Aktar
               </h2>
               <p className="text-xs text-slate-500">
-                Excel, kopyalanan metin veya görselden takvime ve çalışma planına anında aktarın.
+                Excel tablosu, görsel (ekran görüntüsü) veya PDF yükleyin; takvime otomatik dağıtılsın.
               </p>
             </div>
           </div>
@@ -342,24 +350,6 @@ export default function ScheduleImportModal({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
                   type="button"
-                  onClick={() => setImportMode("LESSONS")}
-                  className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all ${
-                    importMode === "LESSONS"
-                      ? "bg-blue-50 border-blue-500 text-blue-900 dark:bg-blue-950/40 dark:border-blue-500 dark:text-blue-200"
-                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
-                  }`}
-                >
-                  <span className="text-xs font-bold flex items-center gap-1.5">
-                    <Calendar size={14} className="text-blue-600 dark:text-blue-400" />
-                    Canlı Ders Takvimi
-                  </span>
-                  <span className="text-[11px] opacity-80 mt-0.5">
-                    Öğretmenle saatli birebir dersler olarak işlenir
-                  </span>
-                </button>
-
-                <button
-                  type="button"
                   onClick={() => setImportMode("STUDY_PLAN")}
                   className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all ${
                     importMode === "STUDY_PLAN"
@@ -372,7 +362,25 @@ export default function ScheduleImportModal({
                     Çalışma / Ödev Programı
                   </span>
                   <span className="text-[11px] opacity-80 mt-0.5">
-                    Öğrencinin kendi çözeceği günlük konu hedefleri
+                    Öğrencinin günlük konu ve soru hedefleri
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setImportMode("LESSONS")}
+                  className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all ${
+                    importMode === "LESSONS"
+                      ? "bg-blue-50 border-blue-500 text-blue-900 dark:bg-blue-950/40 dark:border-blue-500 dark:text-blue-200"
+                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
+                  }`}
+                >
+                  <span className="text-xs font-bold flex items-center gap-1.5">
+                    <Calendar size={14} className="text-blue-600 dark:text-blue-400" />
+                    Canlı Ders Takvimi
+                  </span>
+                  <span className="text-[11px] opacity-80 mt-0.5">
+                    Saatli ve süreli birebir özel dersler
                   </span>
                 </button>
 
@@ -397,182 +405,156 @@ export default function ScheduleImportModal({
             </div>
           </div>
 
-          {/* Yöntem Seçim Sekmeleri (Eğer henüz ayrıştırılmış veri yoksa) */}
+          {/* Dosya Yükleme Alanı (Eğer henüz ayrıştırılmış veri yoksa) */}
           {!parsedItems && (
-            <div className="space-y-4">
-              <div className="flex rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("EXCEL")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition ${
-                    activeTab === "EXCEL"
-                      ? "bg-white text-indigo-600 shadow-xs dark:bg-slate-900 dark:text-indigo-400"
-                      : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
-                  }`}
-                >
-                  <FileSpreadsheet size={15} />
-                  Excel Tablosu Yükle
-                </button>
+            <div className="space-y-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv,.pdf,image/*"
+                className="hidden"
+                onClick={(e) => {
+                  (e.target as HTMLInputElement).value = "";
+                }}
+                onChange={(e) => handleFileSelected(e.target.files?.[0] ?? null)}
+              />
+
+              {/* Seçili Dosya Kartı */}
+              {file && (
+                <div className="flex items-center justify-between rounded-xl bg-indigo-50/70 p-3 text-xs dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
+                  <div className="flex items-center gap-2 truncate pr-2">
+                    <FileText size={18} className="text-indigo-600 shrink-0 dark:text-indigo-400" />
+                    <div className="truncate">
+                      <p className="font-bold text-slate-800 dark:text-slate-100 truncate">
+                        {file.name}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        {(file.size / 1024).toFixed(0)} KB
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={analyzing}
+                    onClick={() => handleFileSelected(file)}
+                    className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shrink-0 shadow-xs text-xs"
+                  >
+                    {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                    {analyzing ? "Analiz Ediliyor..." : "Yeniden Analiz Et"}
+                  </button>
+                </div>
+              )}
+
+              {/* Sürükle Bırak Kutusu */}
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className={`flex flex-col items-center justify-center p-8 sm:p-10 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${
+                  analyzing
+                    ? "border-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/20"
+                    : "border-slate-300 hover:border-indigo-500 hover:bg-indigo-50/20 dark:border-slate-700 dark:hover:bg-slate-800/40"
+                }`}
+              >
+                {analyzing ? (
+                  <div className="flex flex-col items-center gap-3 text-center">
+                    <Loader2 size={36} className="animate-spin text-indigo-600" />
+                    <div>
+                      <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
+                        Ders Programı Analiz Ediliyor...
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Tarihler, günler, dersler ve soru hedefleri otomatik çıkarılıyor.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2.5 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
+                      <UploadCloud size={28} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
+                        {file ? "Farklı Bir Dosya Seçin" : "Ders Programı Dosyanızı Yükleyin"}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Excel (.xlsx, .xls), PDF Belgesi veya Program Görseli (Ekran Görüntüsü / Fotoğraf)
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Hızlı Şablon ve Seçenekler */}
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      setParsedItems(getSampleBlockScheduleTemplate());
+                    }}
+                    className="flex items-center gap-1 text-purple-700 dark:text-purple-300 font-bold hover:underline"
+                  >
+                    <Sparkles size={13} />
+                    Örnek Blok Şablonunu Getir
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      setParsedItems(getEmptyWeeklyTemplate());
+                    }}
+                    className="text-slate-500 hover:text-slate-700 underline dark:text-slate-400"
+                  >
+                    Boş Haftalık Şablon
+                  </button>
+                </div>
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab("PASTE")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition ${
-                    activeTab === "PASTE"
-                      ? "bg-white text-indigo-600 shadow-xs dark:bg-slate-900 dark:text-indigo-400"
-                      : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
-                  }`}
+                  onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                  className="flex items-center gap-1 text-slate-500 hover:text-slate-700 dark:text-slate-400"
                 >
-                  <Clipboard size={15} />
-                  Metin / Tablo Yapıştır
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("IMAGE_REF")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition ${
-                    activeTab === "IMAGE_REF"
-                      ? "bg-white text-indigo-600 shadow-xs dark:bg-slate-900 dark:text-indigo-400"
-                      : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
-                  }`}
-                >
-                  <ImageIcon size={15} />
-                  Görsel / Fotoğraf Yükle
+                  <Key size={13} />
+                  {geminiApiKey ? "Gemini API Anahtarı Ayarlı ✓" : "Görsel için API Anahtarı Gir..."}
                 </button>
               </div>
 
-              {/* SEKME 1: EXCEL YÜKLE */}
-              {activeTab === "EXCEL" && (
-                <div className="space-y-3">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".xlsx,.xls,.csv"
-                    className="hidden"
-                    onClick={(e) => {
-                      (e.target as HTMLInputElement).value = "";
-                    }}
-                    onChange={(e) => handleExcelSelected(e.target.files?.[0] ?? null)}
-                  />
-
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-300 hover:border-indigo-500 hover:bg-indigo-50/20 rounded-2xl cursor-pointer transition-all dark:border-slate-700 dark:hover:bg-slate-800/40 text-center"
-                  >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 mb-2">
-                      <FileSpreadsheet size={28} />
-                    </div>
-                    <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                      Excel veya CSV Dosyanızı Buraya Sürükleyin
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      .xlsx, .xls veya .csv formatı (Otomatik algılanır)
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs pt-1">
+              {/* Gemini API Key Girişi */}
+              {showApiKeyInput && (
+                <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs dark:bg-amber-950/30 dark:border-amber-900/40">
+                  <label className="block font-bold text-amber-900 dark:text-amber-200 mb-1">
+                    Google Gemini API Anahtarı (Fotoğraf ve Görselleri Okumak İçin)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      placeholder="AIzaSy..."
+                      value={geminiApiKey}
+                      onChange={(e) => handleSaveApiKey(e.target.value)}
+                      className="flex-1 rounded-lg border border-amber-300 p-2 text-xs outline-none bg-white dark:bg-slate-900 dark:border-amber-800"
+                    />
                     <button
                       type="button"
-                      onClick={downloadSampleScheduleExcel}
-                      className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-semibold dark:text-indigo-400"
+                      disabled={analyzing || !geminiApiKey.trim()}
+                      onClick={() => {
+                        const cleaned = geminiApiKey.replace(/['"\s]/g, "");
+                        handleSaveApiKey(cleaned);
+                        if (file) {
+                          handleFileSelected(file, cleaned);
+                        } else {
+                          fileInputRef.current?.click();
+                        }
+                      }}
+                      className="rounded-lg bg-amber-600 px-3 py-2 font-semibold text-white hover:bg-amber-700 disabled:opacity-50 shrink-0 transition-colors shadow-xs text-xs flex items-center gap-1.5"
                     >
-                      <Download size={14} />
-                      Örnek Excel Şablonunu İndir
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleLoadWeeklyTemplate}
-                      className="text-slate-500 hover:text-slate-700 underline dark:text-slate-400"
-                    >
-                      Hazır Boş Haftalık Şablon Getir
+                      {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                      {file ? "Kaydet & Analiz Et" : "Kaydet"}
                     </button>
                   </div>
-                </div>
-              )}
-
-              {/* SEKME 2: METİN / WHATSAPP YAPISTIR */}
-              {activeTab === "PASTE" && (
-                <div className="space-y-3">
-                  <p className="text-xs text-slate-500">
-                    WhatsApp&apos;tan, Word&apos;den veya Excel&apos;den kopyaladığınız ders saatlerini buraya yapıştırın. Günler, saatler ve ders adları otomatik ayrıştırılır:
+                  <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">
+                    Görsel ve fotoğrafları yapay zekayla taramak için Google AI Studio (aistudio.google.com) üzerinden aldığınız ücretsiz anahtarı yapıştırabilirsiniz. Excel dosyaları için anahtar gerekmez.
                   </p>
-
-                  <textarea
-                    rows={6}
-                    placeholder={`Örnek Format:
-Pazartesi 17:00 Matematik (Üslü Sayılar, 40 soru)
-Salı 18:30 Fizik (45 dk)
-Çarşamba 16:00 Türkçe Paragraf
-Perşembe 17:30 Kimya
-Cuma 18:00 Biyoloji
-Cumartesi 10:30 Geometri 50 soru
-Pazar 14:00 Genel Deneme`}
-                    value={pastedText}
-                    onChange={(e) => setPastedText(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 p-3 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-800 font-mono"
-                  />
-
-                  <div className="flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={handleLoadWeeklyTemplate}
-                      className="text-xs text-slate-500 hover:text-slate-700 underline dark:text-slate-400"
-                    >
-                      Hazır Boş Haftalık Şablon Getir
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleParsePastedText}
-                      disabled={!pastedText.trim()}
-                      className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-                    >
-                      <Sparkles size={14} />
-                      Metni Tabloya Dök
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* SEKME 3: GÖRSEL / FOTOĞRAF REFERANSI */}
-              {activeTab === "IMAGE_REF" && (
-                <div className="space-y-3">
-                  <input
-                    ref={imageInputRef}
-                    type="file"
-                    accept="image/*,.pdf"
-                    className="hidden"
-                    onClick={(e) => {
-                      (e.target as HTMLInputElement).value = "";
-                    }}
-                    onChange={(e) => handleImageSelected(e.target.files?.[0] ?? null)}
-                  />
-
-                  <div
-                    onClick={() => imageInputRef.current?.click()}
-                    className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-300 hover:border-indigo-500 hover:bg-indigo-50/20 rounded-2xl cursor-pointer transition-all dark:border-slate-700 dark:hover:bg-slate-800/40 text-center"
-                  >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400 mb-2">
-                      <ImageIcon size={28} />
-                    </div>
-                    <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                      Ders Programı Fotoğrafını veya Ekran Görüntüsünü Seçin
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Fotoğraf ekranda açılır, bakarak gün ve saatleri saniyeler içinde takvime dökebilirsiniz.
-                    </p>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={handleLoadWeeklyTemplate}
-                      className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold underline dark:text-indigo-400"
-                    >
-                      Doğrudan Boş Tabloyu Aç
-                    </button>
-                  </div>
                 </div>
               )}
             </div>
@@ -585,6 +567,17 @@ Pazar 14:00 Genel Deneme`}
               <div className="flex-1">
                 <p className="font-semibold">Uyarı</p>
                 <p className="mt-0.5">{error}</p>
+                {file && (
+                  <button
+                    type="button"
+                    disabled={analyzing}
+                    onClick={() => handleFileSelected(file)}
+                    className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors shadow-xs"
+                  >
+                    {analyzing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    Tekrar Dene
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -597,7 +590,7 @@ Pazar 14:00 Genel Deneme`}
             </div>
           )}
 
-          {/* Adım 3: Önizleme & Düzenleme Tablosu */}
+          {/* Adım 3: Önizleme & Canlı Düzenleme Tablosu */}
           {parsedItems && (
             <div className="space-y-3">
               {/* Eğer Görsel Yüklendiyse Yan Yana Göster */}

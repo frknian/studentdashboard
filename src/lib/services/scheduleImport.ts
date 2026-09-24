@@ -75,11 +75,98 @@ export function getDayOffset(dayStr: string): number {
 }
 
 /**
- * Excel (.xlsx, .xls) veya CSV dosyasını okuyarak yapılandırılmış ders programı listesine çevirir.
+ * Hücre metninden ders adı, konu ve soru hedefini ayrıştırır.
+ * Örn: "Fen Bilimleri: Okul Konusu Tekrarı + 30 Soru" ->
+ * subject: "Fen Bilimleri", topic: "Okul Konusu Tekrarı", targetQuestions: 30
  */
+function parseCellStudyContent(rawText: string): {
+  subject: string;
+  topic?: string;
+  targetQuestions?: number;
+} | null {
+  const str = rawText.trim();
+  if (!str || str === "—" || str === "-" || str === "0") return null;
+
+  // Soru sayısı çıkar (örn: "30 Soru", "20 Zor Soru", "20 Paragraf")
+  let targetQuestions: number | undefined;
+  const qMatch = str.match(/(\d+)\s*(soru|test|paragraf)/i);
+  if (qMatch) {
+    targetQuestions = parseInt(qMatch[1], 10);
+  }
+
+  // Özel durum: "20 Paragraf"
+  if (/^\d+\s*paragraf$/i.test(str)) {
+    return {
+      subject: "Türkçe",
+      topic: "Paragraf Rutini",
+      targetQuestions: targetQuestions || 20,
+    };
+  }
+
+  // Ders: Konu formatı (örn: "Fen Bilimleri: Okul Konusu Tekrarı + 30 Soru")
+  if (str.includes(":")) {
+    const [subPart, ...restParts] = str.split(":");
+    const topicPart = restParts
+      .join(":")
+      .replace(/\+\s*\d+\s*(soru|zor soru|test)/gi, "")
+      .trim();
+
+    return {
+      subject: subPart.trim(),
+      topic: topicPart || undefined,
+      targetQuestions,
+    };
+  }
+
+  // Yaygın ders kontrolü
+  const POPULAR_SUBJECTS = [
+    "Matematik",
+    "Geometri",
+    "Fen Bilimleri",
+    "Fen",
+    "Fizik",
+    "Kimya",
+    "Biyoloji",
+    "Türkçe",
+    "Paragraf",
+    "Din Kültürü",
+    "Din",
+    "T.C. İnkılap Tarihi",
+    "İnkılap",
+    "Tarih",
+    "Coğrafya",
+    "İngilizce",
+    "Sözel Karma",
+    "Haftalık Deneme",
+    "Deneme",
+    "Hata Analizi",
+  ];
+
+  for (const s of POPULAR_SUBJECTS) {
+    if (str.toLowerCase().startsWith(s.toLowerCase())) {
+      const topic = str
+        .slice(s.length)
+        .replace(/^[:\-–\s]+/, "")
+        .replace(/\+\s*\d+\s*(soru|test)/gi, "")
+        .trim();
+      return {
+        subject: s,
+        topic: topic || undefined,
+        targetQuestions,
+      };
+    }
+  }
+
+  return {
+    subject: str.slice(0, 30),
+    targetQuestions,
+  };
+}
+
 /**
- * Excel (.xlsx, .xls) veya CSV dosyasını okuyarak yapılandırılmış ders programı listesine çevirir.
- * Hem satır satır liste (Gün, Saat, Ders...) hem de haftalık matris (Sütunlar: Pazartesi, Salı...) formatını destekler.
+ * Universal Excel Parser:
+ * Başlık satırları, birleştirilmiş hücreler, blok sütunları (Blok 1, Blok 2, Blok 3)
+ * ve matris formatları dahil HER TÜRLÜ Excel programını okur.
  */
 export async function parseExcelSchedule(file: File): Promise<ParsedScheduleItem[]> {
   const buffer = await file.arrayBuffer();
@@ -90,148 +177,110 @@ export async function parseExcelSchedule(file: File): Promise<ParsedScheduleItem
   }
 
   const sheet = workbook.Sheets[firstSheetName];
-  const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+  // 2D dizi olarak tüm satırları al
+  const rows: unknown[][] = XLSX.utils.sheet_to_json(sheet, {
+    header: 1,
     defval: "",
   });
 
-  if (!rawRows || rawRows.length === 0) {
+  if (!rows || rows.length === 0) {
     throw new Error("Excel tablosu boş veya okunamadı.");
   }
 
   const items: ParsedScheduleItem[] = [];
+  let blockTimeIndex = 0;
+  const BLOCK_DEFAULT_TIMES = ["16:00", "17:30", "19:00", "20:30"];
 
-  // FORMAT 1: Standart sütunlu tablo kontrolü (Gün, Saat, Ders...)
-  for (let i = 0; i < rawRows.length; i++) {
-    const row = rawRows[i];
-    const keys = Object.keys(row);
+  for (let r = 0; r < rows.length; r++) {
+    const row = rows[r];
+    if (!Array.isArray(row)) continue;
 
-    let dayVal = "";
-    let timeVal = "";
-    let durationVal = 60;
-    let subjectVal = "";
-    let topicVal = "";
-    let questionsVal = 0;
-    let noteVal = "";
+    // Satırdaki gün veya tarihi bul
+    let rowDay = "";
+    let rowDayOffset = -1;
+    let explicitTime = "";
 
-    for (const k of keys) {
-      const lk = k.toLowerCase().trim();
-      const val = String(row[k] ?? "").trim();
-      if (!val) continue;
+    // 1. Önce gün hücresini ara
+    for (let c = 0; c < row.length; c++) {
+      const cell = String(row[c] ?? "").trim();
+      if (!cell) continue;
 
-      if (lk.includes("gün") || lk.includes("gun") || lk === "day") {
-        dayVal = val;
-      } else if (
-        lk.includes("saat") ||
-        lk.includes("time") ||
-        lk.includes("zaman")
-      ) {
-        timeVal = val;
-      } else if (
-        lk.includes("süre") ||
-        lk.includes("sure") ||
-        lk.includes("dakika") ||
-        lk.includes("duration")
-      ) {
-        const num = parseInt(val, 10);
-        if (!isNaN(num) && num > 0) durationVal = num;
-      } else if (
-        lk.includes("ders") ||
-        lk.includes("subject") ||
-        lk.includes("branş") ||
-        lk.includes("brans")
-      ) {
-        subjectVal = val;
-      } else if (
-        lk.includes("konu") ||
-        lk.includes("topic") ||
-        lk.includes("ünite")
-      ) {
-        topicVal = val;
-      } else if (
-        lk.includes("soru") ||
-        lk.includes("adet") ||
-        lk.includes("hedef")
-      ) {
-        const num = parseInt(val, 10);
-        if (!isNaN(num) && num > 0) questionsVal = num;
-      } else if (
-        lk.includes("not") ||
-        lk.includes("açıklama") ||
-        lk.includes("aciklama")
-      ) {
-        noteVal = val;
+      // Saat mi?
+      if (/^\b\d{1,2}[:.]\d{2}\b$/.test(cell)) {
+        explicitTime = cell.replace(".", ":");
+        continue;
       }
-    }
 
-    if (subjectVal || dayVal) {
-      const offset = getDayOffset(dayVal);
-      let cleanTime = timeVal.replace(".", ":").trim();
-      if (!cleanTime.includes(":")) {
-        const h = parseInt(cleanTime, 10);
-        if (!isNaN(h) && h >= 0 && h <= 23) {
-          cleanTime = `${String(h).padStart(2, "0")}:00`;
-        } else {
-          cleanTime = "16:00";
+      // Gün adı mı?
+      for (const [key, offset] of Object.entries(DAY_NORM_MAP)) {
+        const regex = new RegExp(`^${key}$`, "i");
+        if (regex.test(cell)) {
+          rowDay = DAY_NAMES[offset];
+          rowDayOffset = offset;
+          break;
         }
       }
-
-      items.push({
-        id: `excel-${i}-${Date.now()}`,
-        day: DAY_NAMES[offset],
-        dayOffset: offset,
-        time: cleanTime || "16:00",
-        durationMinutes: durationVal || 60,
-        subject: subjectVal || "Genel Çalışma",
-        topic: topicVal || undefined,
-        targetQuestions: questionsVal || undefined,
-        note: noteVal || undefined,
-      });
+      if (rowDayOffset !== -1) break;
     }
-  }
 
-  if (items.length > 0) {
-    items.sort((a, b) => a.dayOffset - b.dayOffset || a.time.localeCompare(b.time));
-    return items;
-  }
-
-  // FORMAT 2: Matris formatı (Sütunlar günler: Pazartesi, Salı, Çarşamba...)
-  // Örneğin: İlk sütun saat, diğer sütunlar günler
-  let matrixCount = 0;
-  for (let r = 0; r < rawRows.length; r++) {
-    const row = rawRows[r];
-    const keys = Object.keys(row);
-
-    // O satırdaki saat sütununu bul
-    let rowTime = "16:00";
-    for (const k of keys) {
-      const lk = k.toLowerCase().trim();
-      if (lk.includes("saat") || lk.includes("time") || lk.includes("etüt")) {
-        const val = String(row[k] ?? "").trim();
-        if (val) {
-          rowTime = val.replace(".", ":");
-          if (!rowTime.includes(":")) rowTime = `${rowTime}:00`;
+    // 2. Eğer gün doğrudan bulunamadıysa Tarih hücresinden çıkar (örn: 24.09.2026)
+    if (rowDayOffset === -1) {
+      for (let c = 0; c < row.length; c++) {
+        const cell = String(row[c] ?? "").trim();
+        const dateMatch = cell.match(/(\d{1,2})[./](\d{1,2})[./](\d{4})/);
+        if (dateMatch) {
+          const dayNum = parseInt(dateMatch[1], 10);
+          const monthNum = parseInt(dateMatch[2], 10) - 1;
+          const yearNum = parseInt(dateMatch[3], 10);
+          const parsedD = new Date(yearNum, monthNum, dayNum);
+          if (!isNaN(parsedD.getTime())) {
+            // JS getDay(): 0: Pazar, 1: Pzt... Bizim offset: 0: Pzt ... 6: Pazar
+            const jsDay = parsedD.getDay();
+            rowDayOffset = jsDay === 0 ? 6 : jsDay - 1;
+            rowDay = DAY_NAMES[rowDayOffset];
+            break;
+          }
         }
       }
     }
 
-    // Gün sütunlarını tara
-    for (const k of keys) {
-      const offset = getDayOffset(k);
-      const val = String(row[k] ?? "").trim();
-      // Eğer bu sütun bir gün adıysa ve hücre doluysa
-      const isDayCol = Object.keys(DAY_NORM_MAP).some((dm) =>
-        k.toLowerCase().includes(dm)
-      );
+    // Eğer bu satır bir güne ait bir veri satırıysa, satırdaki tüm ders/blok içeriklerini topla
+    if (rowDayOffset !== -1) {
+      let dailyBlockCount = 0;
 
-      if (isDayCol && val) {
-        items.push({
-          id: `matrix-${r}-${matrixCount++}-${Date.now()}`,
-          day: DAY_NAMES[offset],
-          dayOffset: offset,
-          time: rowTime,
-          durationMinutes: 60,
-          subject: val,
-        });
+      for (let c = 0; c < row.length; c++) {
+        const cell = String(row[c] ?? "").trim();
+        if (!cell || cell === "—" || cell === "-" || cell === "0") continue;
+
+        // Tarih, gün adı, başlık veya sadece sayı olan hücreleri atla
+        if (/^\d{1,2}[./]\d{1,2}[./]\d{4}$/.test(cell)) continue;
+        if (Object.keys(DAY_NORM_MAP).some((d) => cell.toLowerCase() === d)) continue;
+        if (/^\d+$/.test(cell)) continue; // Sadece sayı (toplam soru, doğru vb.)
+        if (cell.toLowerCase().includes("toplam") || cell.toLowerCase().includes("hafta:")) continue;
+
+        // Ders / Blok içeriği çıkar
+        const parsed = parseCellStudyContent(cell);
+        if (parsed && parsed.subject) {
+          const timeToUse =
+            explicitTime ||
+            BLOCK_DEFAULT_TIMES[dailyBlockCount % BLOCK_DEFAULT_TIMES.length] ||
+            "16:00";
+
+          items.push({
+            id: `excel-row-${r}-col-${c}-${Date.now()}`,
+            day: rowDay,
+            dayOffset: rowDayOffset,
+            time: timeToUse,
+            durationMinutes: 60,
+            subject: parsed.subject,
+            topic: parsed.topic,
+            targetQuestions: parsed.targetQuestions,
+            note: cell !== parsed.subject ? cell : undefined,
+          });
+
+          dailyBlockCount++;
+          blockTimeIndex++;
+        }
       }
     }
   }
@@ -242,197 +291,188 @@ export async function parseExcelSchedule(file: File): Promise<ParsedScheduleItem
   }
 
   throw new Error(
-    "Tablodan geçerli ders verisi okunamadı. Lütfen sütun başlıklarında Gün, Saat, Ders gibi ifadelerin yer aldığından emin olun veya 'Örnek Excel Şablonunu İndir' butonuna tıklayarak hazır taslağı kullanın."
+    "Tablodan geçerli ders veya gün satırı okunamadı. Lütfen satırlarda Gün (Pazartesi, Salı...) veya Tarih (24.09.2026 gibi) yer aldığından emin olun."
   );
 }
 
 /**
- * WhatsApp, Word, Notlar veya kopyalanan tablo metnini akıllıca ayrıştırır.
- * Hiçbir yapay zeka / API anahtarı gerekmez!
+ * Görsel veya PDF programını Gemini AI API üzerinden ayrıştırır.
  */
-export function parsePastedTextSchedule(text: string): ParsedScheduleItem[] {
-  if (!text || !text.trim()) {
-    throw new Error("Lütfen yapıştırılacak bir ders programı metni girin.");
+export async function parseAISchedule(params: {
+  file: File;
+  apiKey?: string;
+}): Promise<ParsedScheduleItem[]> {
+  const formData = new FormData();
+  formData.append("file", params.file);
+  if (params.apiKey) {
+    formData.append("apiKey", params.apiKey);
   }
 
-  const lines = text
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
+  const res = await fetch("/api/ai/parse-schedule", {
+    method: "POST",
+    body: formData,
+  });
 
-  const items: ParsedScheduleItem[] = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-
-    // 1. Tablo kopyalama kontrolü (Tab ile ayrılmış değerler)
-    if (line.includes("\t")) {
-      const parts = line.split("\t").map((p) => p.trim());
-      if (parts.length >= 2) {
-        let dayVal = "";
-        let timeVal = "16:00";
-        let durVal = 60;
-        let subVal = "";
-        let topicVal = "";
-        let questVal = 0;
-
-        for (let pIdx = 0; pIdx < parts.length; pIdx++) {
-          const p = parts[pIdx];
-          if (!p) continue;
-          const isDay = Object.keys(DAY_NORM_MAP).some((d) =>
-            p.toLowerCase().includes(d)
-          );
-          if (isDay && !dayVal) {
-            dayVal = p;
-          } else if (/\b\d{1,2}[:.]\d{2}\b/.test(p)) {
-            timeVal = p.replace(".", ":");
-          } else if (/^\d+$/.test(p)) {
-            const num = parseInt(p, 10);
-            if (num > 0 && num <= 180) durVal = num;
-            else if (num > 180) questVal = num;
-          } else if (!subVal) {
-            subVal = p;
-          } else if (!topicVal) {
-            topicVal = p;
-          }
-        }
-
-        if (subVal || dayVal) {
-          const offset = getDayOffset(dayVal);
-          items.push({
-            id: `paste-tab-${i}-${Date.now()}`,
-            day: DAY_NAMES[offset],
-            dayOffset: offset,
-            time: timeVal,
-            durationMinutes: durVal,
-            subject: subVal || "Ders",
-            topic: topicVal || undefined,
-            targetQuestions: questVal || undefined,
-          });
-          continue;
-        }
-      }
-    }
-
-    // 2. Doğal metin analizi (Örn: "Pazartesi 17:00 Matematik Üslü Sayılar 40 soru")
-    let day = "Pazartesi";
-    let dayOffset = 0;
-    let foundDay = false;
-
-    // Gün tespit et
-    for (const [key, offset] of Object.entries(DAY_NORM_MAP)) {
-      const regex = new RegExp(`\\b${key}\\b`, "i");
-      if (regex.test(line)) {
-        day = DAY_NAMES[offset];
-        dayOffset = offset;
-        foundDay = true;
-        break;
-      }
-    }
-
-    // Saat tespit et (17:00, 17.30 vb.)
-    let time = "16:00";
-    const timeMatch = line.match(/\b(\d{1,2})[:.](\d{2})\b/);
-    if (timeMatch) {
-      const hh = String(parseInt(timeMatch[1], 10)).padStart(2, "0");
-      const mm = timeMatch[2];
-      time = `${hh}:${mm}`;
-    }
-
-    // Süre tespit et (40 dk, 60 dakika vb.)
-    let duration = 60;
-    const durMatch = line.match(/(\d+)\s*(dk|dakika|min)/i);
-    if (durMatch) {
-      duration = parseInt(durMatch[1], 10) || 60;
-    }
-
-    // Hedef soru tespit et (50 soru, 40 test vb.)
-    let targetQuestions: number | undefined;
-    const qMatch = line.match(/(\d+)\s*(soru|test)/i);
-    if (qMatch) {
-      targetQuestions = parseInt(qMatch[1], 10);
-    }
-
-    // Kalan metinden ders ve konu adını ayıkla
-    let cleaned = line
-      .replace(/\b(\d{1,2})[:.](\d{2})\b/g, "")
-      .replace(/(\d+)\s*(dk|dakika|min)/gi, "")
-      .replace(/(\d+)\s*(soru|test)/gi, "")
-      .replace(/[-–—:|]/g, " ")
-      .trim();
-
-    // Gün adını temizle
-    for (const key of Object.keys(DAY_NORM_MAP)) {
-      cleaned = cleaned.replace(new RegExp(`\\b${key}\\b`, "gi"), "");
-    }
-    cleaned = cleaned.replace(/\s+/g, " ").trim();
-
-    // Yaygın ders isimlerini kontrol et
-    const POPULAR_SUBJECTS = [
-      "Matematik",
-      "Geometri",
-      "Fizik",
-      "Kimya",
-      "Biyoloji",
-      "Türkçe",
-      "Edebiyat",
-      "Tarih",
-      "Coğrafya",
-      "Felsefe",
-      "Din Kültürü",
-      "İngilizce",
-      "Fen Bilimleri",
-      "Sosyal Bilgiler",
-      "LGS Deneme",
-      "TYT Deneme",
-      "AYT Deneme",
-    ];
-
-    let detectedSubject = "";
-    let detectedTopic = "";
-
-    for (const s of POPULAR_SUBJECTS) {
-      const sReg = new RegExp(`\\b${s}\\b`, "i");
-      if (sReg.test(cleaned)) {
-        detectedSubject = s;
-        detectedTopic = cleaned.replace(sReg, "").trim();
-        break;
-      }
-    }
-
-    if (!detectedSubject) {
-      // İlk kelimeyi ders adı, kalanını konu yap
-      const words = cleaned.split(" ").filter(Boolean);
-      if (words.length > 0) {
-        detectedSubject = words[0];
-        detectedTopic = words.slice(1).join(" ");
-      } else {
-        detectedSubject = "Ders Çalışma";
-      }
-    }
-
-    if (foundDay || detectedSubject) {
-      items.push({
-        id: `paste-line-${i}-${Date.now()}`,
-        day,
-        dayOffset,
-        time,
-        durationMinutes: duration,
-        subject: detectedSubject,
-        topic: detectedTopic || undefined,
-        targetQuestions,
-      });
-    }
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.error || "Program görseli okunamadı.");
   }
 
-  if (items.length > 0) {
-    items.sort((a, b) => a.dayOffset - b.dayOffset || a.time.localeCompare(b.time));
-    return items;
+  const rawItems = Array.isArray(data.items) ? data.items : [];
+  if (rawItems.length === 0) {
+    throw new Error(
+      "Görselden veya PDF'ten herhangi bir ders bulunamadı. Lütfen daha net bir görsel deneyin."
+    );
   }
 
-  throw new Error(
-    "Metinden herhangi bir ders veya gün çıkarılamadı. Örnek: 'Pazartesi 17:00 Matematik Üslü Sayılar' şeklinde satır satır yazabilir veya Excel tablosunu doğrudan yapıştırabilirsiniz."
+  const items: ParsedScheduleItem[] = rawItems.map(
+    (
+      it: {
+        day?: string;
+        time?: string;
+        durationMinutes?: number;
+        subject?: string;
+        topic?: string;
+        targetQuestions?: number;
+        note?: string;
+      },
+      idx: number
+    ) => {
+      const dayStr = it.day || "Pazartesi";
+      const offset = getDayOffset(dayStr);
+      let timeStr = (it.time || "16:00").trim();
+      if (!timeStr.includes(":")) timeStr = `${timeStr}:00`;
+
+      return {
+        id: `ai-${idx}-${Date.now()}`,
+        day: DAY_NAMES[offset],
+        dayOffset: offset,
+        time: timeStr,
+        durationMinutes: it.durationMinutes || 60,
+        subject: it.subject || "Ders",
+        topic: it.topic || undefined,
+        targetQuestions: it.targetQuestions || undefined,
+        note: it.note || undefined,
+      };
+    }
   );
+
+  items.sort((a, b) => a.dayOffset - b.dayOffset || a.time.localeCompare(b.time));
+  return items;
+}
+
+/**
+ * Kullanıcının görselindeki gibi 3 Bloklu (Paragraf + Sayısal + Sözel)
+ * LGS & YKS Hazır Çalışma Şablonu Üretir
+ */
+export function getSampleBlockScheduleTemplate(): ParsedScheduleItem[] {
+  return [
+    // Perşembe
+    {
+      id: `tmpl-per-1-${Date.now()}`,
+      day: "Perşembe",
+      dayOffset: 3,
+      time: "16:00",
+      durationMinutes: 45,
+      subject: "Türkçe",
+      topic: "Paragraf Rutini",
+      targetQuestions: 20,
+    },
+    {
+      id: `tmpl-per-2-${Date.now()}`,
+      day: "Perşembe",
+      dayOffset: 3,
+      time: "17:30",
+      durationMinutes: 60,
+      subject: "Fen Bilimleri",
+      topic: "Okul Konusu Tekrarı",
+      targetQuestions: 30,
+    },
+    {
+      id: `tmpl-per-3-${Date.now()}`,
+      day: "Perşembe",
+      dayOffset: 3,
+      time: "19:00",
+      durationMinutes: 45,
+      subject: "Din Kültürü",
+      topic: "Okul Konusu Tekrarı",
+      targetQuestions: 20,
+    },
+    // Cuma
+    {
+      id: `tmpl-cum-1-${Date.now()}`,
+      day: "Cuma",
+      dayOffset: 4,
+      time: "16:00",
+      durationMinutes: 45,
+      subject: "Türkçe",
+      topic: "Paragraf Rutini",
+      targetQuestions: 20,
+    },
+    {
+      id: `tmpl-cum-2-${Date.now()}`,
+      day: "Cuma",
+      dayOffset: 4,
+      time: "17:30",
+      durationMinutes: 60,
+      subject: "Matematik",
+      topic: "Okul Konusu & Haftalık Tarama",
+      targetQuestions: 30,
+    },
+    {
+      id: `tmpl-cum-3-${Date.now()}`,
+      day: "Cuma",
+      dayOffset: 4,
+      time: "19:00",
+      durationMinutes: 45,
+      subject: "Türkçe",
+      topic: "Okul Konusu (Dil Bilgisi / Anlam)",
+      targetQuestions: 25,
+    },
+    // Cumartesi
+    {
+      id: `tmpl-cmt-1-${Date.now()}`,
+      day: "Cumartesi",
+      dayOffset: 5,
+      time: "10:30",
+      durationMinutes: 45,
+      subject: "Türkçe",
+      topic: "Paragraf Rutini",
+      targetQuestions: 20,
+    },
+    {
+      id: `tmpl-cmt-2-${Date.now()}`,
+      day: "Cumartesi",
+      dayOffset: 5,
+      time: "11:30",
+      durationMinutes: 60,
+      subject: "Fen Bilimleri",
+      topic: "Fen Bilimleri + Matematik Zor Soru",
+      targetQuestions: 50,
+    },
+    {
+      id: `tmpl-cmt-3-${Date.now()}`,
+      day: "Cumartesi",
+      dayOffset: 5,
+      time: "14:00",
+      durationMinutes: 45,
+      subject: "Sözel Karma",
+      topic: "İnkılap + İngilizce + Din",
+      targetQuestions: 30,
+    },
+    // Pazar
+    {
+      id: `tmpl-paz-1-${Date.now()}`,
+      day: "Pazar",
+      dayOffset: 6,
+      time: "14:00",
+      durationMinutes: 90,
+      subject: "Hata Analizi",
+      topic: "Haftalık Hata & Boş Soru Analizi",
+      targetQuestions: 0,
+      note: "Tekrar Çözüm ve Değerlendirme",
+    },
+  ];
 }
 
 /**
@@ -513,7 +553,6 @@ export function getEmptyWeeklyTemplate(): ParsedScheduleItem[] {
   ];
 }
 
-
 /**
  * Örnek Excel Ders Programı Şablonu Üretir ve İndirir
  */
@@ -585,7 +624,6 @@ export function downloadSampleScheduleExcel(): void {
   ];
 
   const ws = XLSX.utils.json_to_sheet(sampleData);
-  // Sütun genişlikleri
   ws["!cols"] = [
     { wch: 14 },
     { wch: 10 },
@@ -599,72 +637,6 @@ export function downloadSampleScheduleExcel(): void {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Ders Programı");
   XLSX.writeFile(wb, "Haftalik_Ders_Programi_Sablonu.xlsx");
-}
-
-/**
- * Görsel veya PDF programını Gemini AI API üzerinden ayrıştırır.
- */
-export async function parseAISchedule(params: {
-  file: File;
-  apiKey?: string;
-}): Promise<ParsedScheduleItem[]> {
-  const formData = new FormData();
-  formData.append("file", params.file);
-  if (params.apiKey) {
-    formData.append("apiKey", params.apiKey);
-  }
-
-  const res = await fetch("/api/ai/parse-schedule", {
-    method: "POST",
-    body: formData,
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data?.error || "Program görseli yapay zeka ile okunamadı.");
-  }
-
-  const rawItems = Array.isArray(data.items) ? data.items : [];
-  if (rawItems.length === 0) {
-    throw new Error(
-      "Görselden veya PDF'ten herhangi bir ders bulunamadı. Lütfen daha net bir fotoğraf deneyin veya Excel yükleyin."
-    );
-  }
-
-  const items: ParsedScheduleItem[] = rawItems.map(
-    (
-      it: {
-        day?: string;
-        time?: string;
-        durationMinutes?: number;
-        subject?: string;
-        topic?: string;
-        targetQuestions?: number;
-        note?: string;
-      },
-      idx: number
-    ) => {
-      const dayStr = it.day || "Pazartesi";
-      const offset = getDayOffset(dayStr);
-      let timeStr = (it.time || "16:00").trim();
-      if (!timeStr.includes(":")) timeStr = `${timeStr}:00`;
-
-      return {
-        id: `ai-${idx}-${Date.now()}`,
-        day: DAY_NAMES[offset],
-        dayOffset: offset,
-        time: timeStr,
-        durationMinutes: it.durationMinutes || 60,
-        subject: it.subject || "Ders",
-        topic: it.topic || undefined,
-        targetQuestions: it.targetQuestions || undefined,
-        note: it.note || undefined,
-      };
-    }
-  );
-
-  items.sort((a, b) => a.dayOffset - b.dayOffset || a.time.localeCompare(b.time));
-  return items;
 }
 
 /**
