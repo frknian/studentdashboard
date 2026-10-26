@@ -78,9 +78,11 @@
   color-scheme: light;
 }
 
+/* Yatay taşmayı "clip" ile kes: "hidden" body'yi ayrı bir kaydırma kutusu
+   yapar ve iOS'ta dokunmatik kaydırma sayfaya geçmez. */
 html,
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
 }
 
@@ -88,7 +90,6 @@ body {
   font-family: var(--font-sans);
   background: var(--app-bg);
   -webkit-tap-highlight-color: transparent;
-  overscroll-behavior-y: none;
 }
 
 @layer base {

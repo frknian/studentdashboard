@@ -16,11 +16,16 @@ import {
   StickyNote,
   Trash2,
   User,
+  UserMinus,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, PageHeader, SectionTitle, Badge } from "@/components/ui";
+import { Card, PageHeader, SectionTitle, Badge, Sheet } from "@/components/ui";
 import UserAvatar from "@/components/UserAvatar";
-import { subscribeStudents, updateStudentSettings } from "@/lib/services/users";
+import {
+  removeStudentFromTeacher,
+  subscribeStudents,
+  updateStudentSettings,
+} from "@/lib/services/users";
 import { refreshParentView } from "@/lib/services/parent";
 import { addNote, deleteNote, subscribeNotes } from "@/lib/services/notes";
 import {
@@ -51,6 +56,8 @@ export default function StudentsPage() {
   const [noteAudience, setNoteAudience] = useState<NoteAudience>("BOTH");
   const [notes, setNotes] = useState<Record<string, NoteItem[]>>({});
   const [expandedStudent, setExpandedStudent] = useState<string | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<UserProfile | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   async function handleGradeChange(s: UserProfile, newGrade: number) {
     const suggested = suggestGroup(newGrade);
@@ -136,6 +143,19 @@ export default function StudentsPage() {
       setTimeout(() => setCopied(null), 1500);
     } catch {
       /* pano erişimi yok */
+    }
+  }
+
+  async function handleRemove() {
+    if (!removeTarget) return;
+    setRemoving(true);
+    try {
+      await removeStudentFromTeacher(removeTarget);
+      setRemoveTarget(null);
+    } catch {
+      alert("Öğrenci kaldırılırken bir hata oluştu.");
+    } finally {
+      setRemoving(false);
     }
   }
 
@@ -283,6 +303,14 @@ export default function StudentsPage() {
                     className={syncing === s.uid ? "animate-spin" : ""}
                   />
                   Veli Özetini Yenile
+                </button>
+                <button
+                  onClick={() => setRemoveTarget(s)}
+                  className="flex w-11 shrink-0 items-center justify-center rounded-2xl border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-900/60"
+                  aria-label={`${s.displayName} adlı öğrenciyi kaldır`}
+                  title="Öğrenciyi kaldır"
+                >
+                  <UserMinus size={16} />
                 </button>
               </div>
 
@@ -619,6 +647,47 @@ export default function StudentsPage() {
           </Card>
         )}
       </div>
+
+      <Sheet
+        open={removeTarget !== null}
+        onClose={() => !removing && setRemoveTarget(null)}
+        title="Öğrenciyi kaldır"
+      >
+        {removeTarget && (
+          <>
+            <div className="flex items-center gap-3 rounded-3xl bg-slate-50 p-3">
+              <UserAvatar icon={removeTarget.avatarIcon} role="STUDENT" size="md" />
+              <div className="min-w-0">
+                <p className="truncate font-bold">{removeTarget.displayName}</p>
+                <p className="truncate text-xs text-slate-500">{removeTarget.email}</p>
+              </div>
+            </div>
+            <ul className="mt-4 space-y-2 text-sm text-slate-600">
+              <li>• Öğrenci listenizden ve seçim listelerinden çıkar.</li>
+              <li>• Veli bağlantısı devre dışı kalır.</li>
+              <li>• Geçmiş ders ve ödeme kayıtlarınız Finans&apos;ta korunur.</li>
+              <li>• Öğrencinin hesabı silinmez; tekrar eklemek için yeni kayıt gerekir.</li>
+            </ul>
+            <div className="mt-5 flex gap-2">
+              <button
+                onClick={() => setRemoveTarget(null)}
+                disabled={removing}
+                className="rounded-2xl bg-slate-100 px-5 py-3.5 text-sm font-semibold text-slate-600"
+              >
+                Vazgeç
+              </button>
+              <button
+                onClick={handleRemove}
+                disabled={removing}
+                className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-rose-600 py-3.5 text-sm font-bold text-white disabled:opacity-60"
+              >
+                <UserMinus size={17} />
+                {removing ? "Kaldırılıyor..." : "Evet, kaldır"}
+              </button>
+            </div>
+          </>
+        )}
+      </Sheet>
 
       {selectedDetailStudent && (
         <StudentDetailModal
