@@ -1,5 +1,7 @@
 import {
   collection,
+  deleteDoc,
+  deleteField,
   doc,
   onSnapshot,
   query,
@@ -31,6 +33,21 @@ export async function updateStudentSettings(
   data: Partial<Omit<UserProfile, "uid" | "role" | "email" | "createdAt">>
 ): Promise<void> {
   await updateDoc(doc(db(), "users", uid), data);
+}
+
+/**
+ * Öğrenciyi öğretmenin listesinden çıkarır. Hesap ve geçmiş kayıtlar (ders,
+ * ödeme) korunur; öğretmen bağı ve veli bağlantısı kaldırılır, böylece eski
+ * veli linki artık öğrenci verisi göstermez.
+ */
+export async function removeStudentFromTeacher(student: UserProfile): Promise<void> {
+  if (student.parentToken) {
+    await deleteDoc(doc(db(), "parentViews", student.parentToken));
+  }
+  await updateDoc(doc(db(), "users", student.uid), {
+    teacherId: deleteField(),
+    parentToken: deleteField(),
+  });
 }
 
 /** Günlük seriyi (streak) günceller. Her gün en az bir aksiyon seriyi sürdürür. */

@@ -26,7 +26,7 @@ import {
   updateLesson,
 } from "@/lib/services/lessons";
 import { subscribeAllTasksForStudent } from "@/lib/services/tasks";
-import { updateStudentSettings } from "@/lib/services/users";
+import { removeStudentFromTeacher } from "@/lib/services/users";
 import { refreshParentView } from "@/lib/services/parent";
 import {
   LESSON_STATUS_LABELS,
@@ -169,8 +169,7 @@ export default function StudentDetailModal({
   async function handleRemoveStudent() {
     setBusyRemove(true);
     try {
-      await updateStudentSettings(student.uid, { teacherId: "" });
-      refreshParentView(student.uid).catch(() => {});
+      await removeStudentFromTeacher(student);
       if (onStudentRemoved) onStudentRemoved();
       onClose();
     } catch {
