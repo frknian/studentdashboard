@@ -1,27 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   CalendarDays,
   CheckCircle2,
+  ChevronRight,
   Circle,
+  ClipboardList,
   Clock,
   ExternalLink,
   Flame,
   LineChart,
   Link as LinkIcon,
   MessageCircleQuestion,
+  MessageSquareText,
   Plus,
-  Settings,
   Trash2,
   Users,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
-import UserAvatar from "@/components/UserAvatar";
-import NotificationCenter from "@/components/NotificationCenter";
+import StudentPicker from "@/components/StudentPicker";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, ProgressBar, SectionTitle, Badge } from "@/components/ui";
+import { Card, ProgressBar, SectionTitle, Badge, EmptyState, Sheet } from "@/components/ui";
 import PostLessonModal from "@/components/PostLessonModal";
 import { createNotification } from "@/lib/services/notifications";
 import {
@@ -106,44 +107,52 @@ function StudentDashboard() {
 
   return (
     <div>
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <UserAvatar
-            icon={profile.avatarIcon}
-            role={profile.role}
-            name={profile.displayName}
-            size="md"
-          />
-          <div>
-            <p className="text-xs text-slate-500">Merhaba,</p>
-            <h1 className="text-xl font-bold">{profile.displayName}</h1>
+      <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-indigo-600 via-indigo-600 to-fuchsia-600 p-5 text-white shadow-float">
+        <div className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/10" />
+        <div className="pointer-events-none absolute -bottom-16 right-16 h-32 w-32 rounded-full bg-white/10" />
+        <div className="relative flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm text-white/75">Merhaba 👋</p>
+            <h1 className="truncate text-2xl font-extrabold tracking-tight">{profile.displayName}</h1>
           </div>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1.5 text-sm font-bold text-orange-600 dark:bg-orange-900/40 dark:text-orange-300">
-            <Flame size={16} />
+          <div className="flex shrink-0 items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-sm font-bold backdrop-blur">
+            <Flame size={16} className="text-amber-300" />
             {profile.streak ?? 0} gün
           </div>
-          <NotificationCenter />
-          <Link href="/panel/ayarlar" className="text-slate-400 hover:text-slate-600" aria-label="Ayarlar">
-            <Settings size={20} />
-          </Link>
         </div>
-      </header>
+        <div className="relative mt-5 flex items-center gap-4">
+          <ProgressRing value={completed} max={weeklyTarget || completed || 1} />
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
+              Haftalık soru hedefi
+            </p>
+            <p className="mt-0.5 text-3xl font-extrabold tracking-tight">
+              {completed}
+              <span className="text-lg font-semibold text-white/60"> / {weeklyTarget || "—"}</span>
+            </p>
+            <p className="mt-0.5 text-xs text-white/60">
+              Hafta başı: {mondayOf().toLocaleDateString("tr-TR")}
+            </p>
+          </div>
+        </div>
+      </section>
 
       {notes.filter((n) => n.audience !== "PARENT").length > 0 && (
-        <Card className="mt-5 border-l-4 border-l-indigo-400">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Öğretmeninden Notlar
+        <Card className="mt-4">
+          <h2 className="flex items-center gap-2 text-sm font-bold">
+            <span className="flex h-7 w-7 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300">
+              <MessageSquareText size={15} />
+            </span>
+            Öğretmeninden notlar
           </h2>
           <div className="mt-2 space-y-2">
             {notes
               .filter((n) => n.audience !== "PARENT")
               .slice(0, 3)
               .map((n) => (
-                <div key={n.id} className="rounded-lg bg-indigo-50/60 p-2.5">
+                <div key={n.id} className="rounded-2xl bg-indigo-50/60 p-3">
                   <p className="text-sm text-slate-700">{n.text}</p>
-                  <p className="mt-1 text-[10px] text-slate-400">
+                  <p className="mt-1 text-[11px] text-slate-400">
                     {n.createdAt?.toDate().toLocaleDateString("tr-TR")}
                   </p>
                 </div>
@@ -152,29 +161,12 @@ function StudentDashboard() {
         </Card>
       )}
 
-      <Card className="mt-5">
-        <div className="mb-2 flex items-end justify-between">
-          <h2 className="font-semibold">Haftalık Soru Hedefi</h2>
-          <span className="text-sm text-slate-500">
-            <span className="text-lg font-bold text-indigo-600">{completed}</span>
-            {" / "}
-            {weeklyTarget || "—"}
-          </span>
-        </div>
-        <ProgressBar value={completed} max={weeklyTarget || completed || 1} />
-        <p className="mt-2 text-xs text-slate-400">
-          Hafta başlangıcı: {mondayOf().toLocaleDateString("tr-TR")}
-        </p>
-      </Card>
-
       <SectionTitle title="Bu Haftanın Görevleri" />
       {tasks.length === 0 && (
-        <Card>
-          <p className="text-sm text-slate-500">
-            Bu hafta için görev tanımlanmamış. Öğretmeniniz görev eklediğinde burada
-            görünecek.
-          </p>
-        </Card>
+        <EmptyState icon={<ClipboardList size={32} />}>
+          Bu hafta için görev tanımlanmamış. Öğretmeniniz görev eklediğinde burada
+          görünecek.
+        </EmptyState>
       )}
       <div className="space-y-3">
         {tasks.map((task) => (
@@ -184,13 +176,13 @@ function StudentDashboard() {
                 onClick={() =>
                   task.isCompleted ? uncompleteTask(task.id) : setFeedbackFor(task.id)
                 }
-                className="mt-0.5 shrink-0"
+                className="-m-1.5 shrink-0 p-1.5"
                 aria-label="Görev durumu"
               >
                 {task.isCompleted ? (
-                  <CheckCircle2 className="text-emerald-500" size={24} />
+                  <CheckCircle2 className="text-emerald-500" size={28} />
                 ) : (
-                  <Circle className="text-slate-300" size={24} />
+                  <Circle className="text-slate-300" size={28} />
                 )}
               </button>
               <div className="flex-1">
@@ -204,12 +196,12 @@ function StudentDashboard() {
                       {task.title}
                     </p>
                     {task.subject && (
-                      <span className="rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700">
+                      <span className="rounded-md bg-indigo-50 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-700">
                         {task.subject}
                       </span>
                     )}
                     {task.topic && (
-                      <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                      <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">
                         {task.topic}
                       </span>
                     )}
@@ -220,7 +212,7 @@ function StudentDashboard() {
                 </div>
 
                 {task.description && (
-                  <p className="mt-2 whitespace-pre-line rounded-lg border border-slate-100 bg-slate-50 p-2 text-xs text-slate-600">
+                  <p className="mt-2 whitespace-pre-line rounded-xl border border-slate-100 bg-slate-50 p-2 text-xs text-slate-600">
                     {task.description}
                   </p>
                 )}
@@ -231,7 +223,7 @@ function StudentDashboard() {
                       href={task.driveLink.startsWith("http") ? task.driveLink : `https://${task.driveLink}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
+                      className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
                     >
                       <ExternalLink size={12} /> Google Drive / Ödev Linki ↗
                     </a>
@@ -261,17 +253,18 @@ function StudentDashboard() {
                   <div className="mt-3 flex gap-2">
                     <input
                       type="number"
+                      inputMode="numeric"
                       min={1}
-                      placeholder="Çözülen"
+                      placeholder="Kaç soru çözdün?"
                       value={progressInputs[task.id] ?? ""}
                       onChange={(e) =>
                         setProgressInputs((p) => ({ ...p, [task.id]: e.target.value }))
                       }
-                      className="w-24 rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-indigo-400"
+                      className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none"
                     />
                     <button
                       onClick={() => handleAddProgress(task)}
-                      className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white"
+                      className="rounded-2xl bg-indigo-600 px-5 text-sm font-bold text-white"
                     >
                       Ekle
                     </button>
@@ -279,14 +272,14 @@ function StudentDashboard() {
                 )}
 
                 {!task.isCompleted && feedbackFor === task.id && (
-                  <div className="mt-3 space-y-2 rounded-xl bg-slate-50 p-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-slate-500">Zorluk:</span>
+                  <div className="mt-3 space-y-3 rounded-2xl bg-slate-50 p-3">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-xs font-semibold text-slate-500">Zorluk</span>
                       {[1, 2, 3, 4, 5].map((n) => (
                         <button
                           key={n}
                           onClick={() => setDifficulty(n)}
-                          className={`h-7 w-7 rounded-full text-xs font-bold ${
+                          className={`h-10 w-10 rounded-full text-sm font-bold ${
                             difficulty === n
                               ? "bg-indigo-600 text-white"
                               : "bg-white text-slate-500 ring-1 ring-slate-200"
@@ -301,14 +294,22 @@ function StudentDashboard() {
                       placeholder="Kısa not (isteğe bağlı)"
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-indigo-400"
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none"
                     />
-                    <button
-                      onClick={() => handleComplete(task.id)}
-                      className="w-full rounded-lg bg-emerald-600 py-2 text-xs font-semibold text-white"
-                    >
-                      Görevi Tamamla
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setFeedbackFor(null)}
+                        className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-500 ring-1 ring-slate-200"
+                      >
+                        Vazgeç
+                      </button>
+                      <button
+                        onClick={() => handleComplete(task.id)}
+                        className="flex-1 rounded-2xl bg-emerald-600 py-3 text-sm font-bold text-white"
+                      >
+                        Görevi Tamamla
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -437,93 +438,60 @@ function TeacherDashboard() {
 
   return (
     <div>
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <UserAvatar
-            icon={profile.avatarIcon}
-            role={profile.role}
-            name={profile.displayName}
-            size="md"
-          />
-          <div>
-            <p className="text-xs text-slate-500">Hoş geldiniz,</p>
-            <h1 className="text-xl font-bold">{profile.displayName}</h1>
-          </div>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <NotificationCenter />
-          <Link href="/panel/ayarlar" className="text-slate-400 hover:text-slate-600" aria-label="Ayarlar">
-            <Settings size={20} />
-          </Link>
-        </div>
+      <header>
+        <p className="text-sm text-slate-500">
+          {new Date().toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long" })}
+        </p>
+        <h1 className="text-[26px] font-extrabold leading-tight tracking-tight">
+          Hoş geldiniz, {profile.displayName.split(" ")[0]} 👋
+        </h1>
       </header>
 
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        <Card className="text-center">
-          <Users className="mx-auto text-indigo-500" size={20} />
-          <p className="mt-1 text-xl font-bold">{students.length}</p>
-          <p className="text-[11px] text-slate-500">Öğrenci</p>
-        </Card>
-        <Card className="text-center">
-          <CalendarDays className="mx-auto text-indigo-500" size={20} />
-          <p className="mt-1 text-xl font-bold">{stats.weekCount}</p>
-          <p className="text-[11px] text-slate-500">Bu Hafta Ders</p>
-        </Card>
-        <Link href="/panel/finans">
-          <Card className="text-center transition hover:ring-rose-200">
-            <Wallet className="mx-auto text-rose-500" size={20} />
-            <p className="mt-1 text-xl font-bold">{stats.unpaid}₺</p>
-            <p className="text-[11px] text-slate-500">Bekleyen Ödeme</p>
-          </Card>
-        </Link>
+      <div className="mt-5 grid grid-cols-3 gap-2.5">
+        <StatTile icon={<Users size={18} />} value={students.length} label="Öğrenci" href="/panel/ogrenciler" />
+        <StatTile icon={<CalendarDays size={18} />} value={stats.weekCount} label="Bu hafta ders" href="/panel/takvim" />
+        <StatTile
+          icon={<Wallet size={18} />}
+          value={`${stats.unpaid}₺`}
+          label="Bekleyen ödeme"
+          href="/panel/finans"
+          tone="rose"
+        />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <Link href="/panel/sorular">
-          <Card className="flex items-center gap-3 transition hover:ring-indigo-200">
-            <MessageCircleQuestion className="text-indigo-500" size={22} />
-            <span className="text-sm font-semibold">Soru Kumbarası</span>
-          </Card>
-        </Link>
-        <Link href="/panel/denemeler">
-          <Card className="flex items-center gap-3 transition hover:ring-indigo-200">
-            <LineChart className="text-indigo-500" size={22} />
-            <span className="text-sm font-semibold">Deneme Analizi</span>
-          </Card>
-        </Link>
+      <div className="mt-3 grid grid-cols-2 gap-2.5">
+        <button
+          onClick={() => setShowTaskForm(true)}
+          className="col-span-2 flex items-center gap-3 rounded-3xl bg-indigo-600 p-4 text-left text-white shadow-lg shadow-indigo-600/25"
+        >
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15">
+            <Plus size={22} />
+          </span>
+          <span className="flex-1">
+            <span className="block text-[15px] font-bold">Yeni ödev / görev ver</span>
+            <span className="block text-xs text-white/70">Öğrenciye ve veliye anında yansır</span>
+          </span>
+          <ChevronRight size={20} className="text-white/60" />
+        </button>
+        <QuickLink href="/panel/sorular" icon={<MessageCircleQuestion size={20} />} label="Soru Kumbarası" />
+        <QuickLink href="/panel/analiz" icon={<LineChart size={20} />} label="Deneme Analizi" />
       </div>
 
-      <SectionTitle
-        title="Ödevlendirme & Görev Sistemi"
-        action={
-          <button
-            onClick={() => setShowTaskForm((v) => !v)}
-            className="flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
-          >
-            <Plus size={16} /> Yeni Ödev / Görev
-          </button>
-        }
-      />
-      {showTaskForm && (
-        <Card className="space-y-3 border-indigo-100 bg-indigo-50/20">
+      <Sheet open={showTaskForm} onClose={() => setShowTaskForm(false)} title="Yeni Ödev / Görev">
+        <div className="space-y-3">
           <div>
             <label className="text-xs font-semibold text-slate-600">Öğrenci</label>
-            <select
-              value={taskStudent}
-              onChange={(e) => {
-                setTaskStudent(e.target.value);
-                setTaskSubject("");
-                setTaskTopic("");
-              }}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400"
-            >
-              <option value="">Öğrenci seçin</option>
-              {students.map((s) => (
-                <option key={s.uid} value={s.uid}>
-                  {s.displayName} {s.grade ? `(${s.grade}. Sınıf)` : ""}
-                </option>
-              ))}
-            </select>
+            <div className="mt-1.5">
+              <StudentPicker
+                students={students}
+                value={taskStudent}
+                onChange={(id) => {
+                  setTaskStudent(id);
+                  setTaskSubject("");
+                  setTaskTopic("");
+                }}
+              />
+            </div>
           </div>
 
           {taskStudent && (
@@ -538,7 +506,7 @@ function TeacherDashboard() {
                     setTaskTopic("");
                     if (sub) setTaskTitle(`${sub} Ödevi`);
                   }}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-400"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none"
                 >
                   <option value="">Ders seçin</option>
                   {availableSubjects.map((s) => (
@@ -559,7 +527,7 @@ function TeacherDashboard() {
                     if (taskSubject && top) setTaskTitle(`${taskSubject} - ${top}`);
                   }}
                   disabled={!taskSubject}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-400 disabled:opacity-50"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none disabled:opacity-50"
                 >
                   <option value="">Konu seçin</option>
                   {availableTopics.map((t) => (
@@ -579,7 +547,7 @@ function TeacherDashboard() {
               placeholder="Ödev başlığı (örn. Matematik - Üslü Sayılar Test 1-3)"
               value={taskTitle}
               onChange={(e) => setTaskTitle(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none"
             />
           </div>
 
@@ -590,7 +558,7 @@ function TeacherDashboard() {
               placeholder="Öğrencinin yapması gerekenler, kaynak kitap ve test numaraları..."
               value={taskDesc}
               onChange={(e) => setTaskDesc(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-400"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none"
             />
           </div>
 
@@ -603,7 +571,7 @@ function TeacherDashboard() {
                 placeholder="Örn. 40"
                 value={taskTarget}
                 onChange={(e) => setTaskTarget(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-400"
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none"
               />
             </div>
             <div>
@@ -612,7 +580,7 @@ function TeacherDashboard() {
                 type="date"
                 value={taskDueDate}
                 onChange={(e) => setTaskDueDate(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-400"
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none"
               />
             </div>
           </div>
@@ -628,37 +596,35 @@ function TeacherDashboard() {
                 placeholder="https://drive.google.com/... (ödev dokümanı veya PDF linki)"
                 value={taskDriveLink}
                 onChange={(e) => setTaskDriveLink(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white pl-8 pr-3 py-2 text-xs outline-none focus:border-indigo-400"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2.5 text-sm outline-none"
               />
             </div>
           </div>
 
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={handleAddTask}
-              disabled={taskBusy || !taskStudent || !taskTitle.trim()}
-              className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {taskBusy ? "Kaydediliyor..." : "Ödevi Tanımla & Veliye Yansıt"}
-            </button>
+          <div className="sticky bottom-0 -mx-5 flex gap-2 bg-white px-5 pt-2">
             <button
               onClick={() => setShowTaskForm(false)}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-50"
+              className="rounded-2xl bg-slate-100 px-5 py-3.5 text-sm font-semibold text-slate-600"
             >
               İptal
             </button>
+            <button
+              onClick={handleAddTask}
+              disabled={taskBusy || !taskStudent || !taskTitle.trim()}
+              className="flex-1 rounded-2xl bg-indigo-600 py-3.5 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {taskBusy ? "Kaydediliyor..." : "Ödevi Ver"}
+            </button>
           </div>
-        </Card>
-      )}
+        </div>
+      </Sheet>
 
       {/* Seçili Öğrencinin Bu Haftaki Ödevleri */}
       {taskStudent && selectedStudentTasks.length > 0 && (
-        <div className="mt-3 space-y-2">
-          <p className="text-xs font-semibold text-slate-500 uppercase">
-            {selectedStudentObj?.displayName} için Bu Haftanın Ödevleri ({selectedStudentTasks.length})
-          </p>
+        <div className="space-y-2">
+          <SectionTitle title={`${selectedStudentObj?.displayName} • bu haftaki ödevler (${selectedStudentTasks.length})`} />
           {selectedStudentTasks.map((t) => (
-            <Card key={t.id} className="p-3">
+            <Card key={t.id} className="p-3.5">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -666,17 +632,17 @@ function TeacherDashboard() {
                       {t.title}
                     </p>
                     {t.subject && (
-                      <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700">
+                      <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-700">
                         {t.subject}
                       </span>
                     )}
                     {t.topic && (
-                      <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                      <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">
                         {t.topic}
                       </span>
                     )}
                     {t.isCompleted && (
-                      <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                      <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-bold text-emerald-700">
                         Tamamlandı ✓
                       </span>
                     )}
@@ -703,10 +669,10 @@ function TeacherDashboard() {
                     await deleteTask(t.id);
                     refreshParentView(taskStudent).catch(() => {});
                   }}
-                  className="p-1 text-slate-300 hover:text-rose-500"
+                  className="-m-1 rounded-2xl p-2 text-slate-300 hover:bg-rose-50 hover:text-rose-500"
                   aria-label="Ödevi sil"
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={16} />
                 </button>
               </div>
             </Card>
@@ -720,31 +686,37 @@ function TeacherDashboard() {
           .filter((l) => l.startTime.toDate() >= new Date() && l.status !== "CANCELLED")
           .slice(0, 5)
           .map((l) => (
-            <Card key={l.id} className="flex items-center justify-between py-3">
-              <div>
-                <p className="text-sm font-semibold">{l.studentName}</p>
-                <p className="text-xs text-slate-500">
+            <Card key={l.id} className="flex items-center gap-3 p-3">
+              <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700 dark:text-indigo-200">
+                <span className="text-[11px] font-bold uppercase">
+                  {l.startTime.toDate().toLocaleDateString("tr-TR", { weekday: "short" })}
+                </span>
+                <span className="text-sm font-extrabold leading-tight">
+                  {l.startTime.toDate().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold">{l.studentName}</p>
+                <p className="truncate text-xs text-slate-500">
                   {l.subject} • {formatTime(l.startTime.toDate())}
                 </p>
+                <div className="mt-1">
+                  <Badge tone={l.status === "PENDING" ? "amber" : "indigo"}>
+                    {l.status === "PENDING" ? "Onay bekliyor" : "Onaylandı"}
+                  </Badge>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setPostLessonFor(l)}
-                  className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 flex items-center gap-1 shadow-xs transition-colors"
-                >
-                  <CheckCircle2 size={12} /> Ders Sonu
-                </button>
-                <Badge tone={l.status === "PENDING" ? "amber" : "indigo"}>
-                  {l.status === "PENDING" ? "Onay Bekliyor" : "Onaylandı"}
-                </Badge>
-              </div>
+              <button
+                onClick={() => setPostLessonFor(l)}
+                className="flex shrink-0 flex-col items-center gap-0.5 rounded-2xl bg-emerald-600 px-3 py-2 text-[11px] font-bold text-white"
+              >
+                <CheckCircle2 size={18} /> Ders sonu
+              </button>
             </Card>
           ))}
         {lessons.filter((l) => l.startTime.toDate() >= new Date() && l.status !== "CANCELLED")
           .length === 0 && (
-          <Card>
-            <p className="text-sm text-slate-500">Yaklaşan ders bulunmuyor.</p>
-          </Card>
+          <EmptyState icon={<CalendarDays size={32} />}>Yaklaşan ders bulunmuyor.</EmptyState>
         )}
       </div>
 
@@ -758,5 +730,80 @@ function TeacherDashboard() {
         />
       )}
     </div>
+  );
+}
+
+/* ------------------------------ Yardımcılar ------------------------------ */
+
+function ProgressRing({ value, max }: { value: number; max: number }) {
+  const pct = max > 0 ? Math.min(1, value / max) : 0;
+  const r = 30;
+  const c = 2 * Math.PI * r;
+  return (
+    <div className="relative h-20 w-20 shrink-0">
+      <svg viewBox="0 0 72 72" className="h-full w-full -rotate-90">
+        <circle cx="36" cy="36" r={r} fill="none" stroke="rgb(255 255 255 / 0.18)" strokeWidth="7" />
+        <circle
+          cx="36"
+          cy="36"
+          r={r}
+          fill="none"
+          stroke="white"
+          strokeWidth="7"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - pct)}
+          className="transition-[stroke-dashoffset] duration-700"
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold">
+        %{Math.round(pct * 100)}
+      </span>
+    </div>
+  );
+}
+
+function StatTile({
+  icon,
+  value,
+  label,
+  href,
+  tone = "indigo",
+}: {
+  icon: ReactNode;
+  value: ReactNode;
+  label: string;
+  href: string;
+  tone?: "indigo" | "rose";
+}) {
+  return (
+    <Link href={href} className="active:scale-95">
+      <Card className="h-full p-3.5">
+        <span
+          className={`flex h-9 w-9 items-center justify-center rounded-2xl ${
+            tone === "rose"
+              ? "bg-rose-50 text-rose-500"
+              : "bg-indigo-50 text-indigo-600 dark:text-indigo-300"
+          }`}
+        >
+          {icon}
+        </span>
+        <p className="mt-2.5 truncate text-xl font-extrabold tracking-tight">{value}</p>
+        <p className="truncate text-[11px] font-medium text-slate-500">{label}</p>
+      </Card>
+    </Link>
+  );
+}
+
+function QuickLink({ href, icon, label }: { href: string; icon: ReactNode; label: string }) {
+  return (
+    <Link href={href} className="active:scale-95">
+      <Card className="flex h-full items-center gap-3 p-3.5">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:text-indigo-300">
+          {icon}
+        </span>
+        <span className="text-sm font-bold leading-tight">{label}</span>
+      </Card>
+    </Link>
   );
 }

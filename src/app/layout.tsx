@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
+  subsets: ["latin", "latin-ext"],
 });
 
 export const metadata: Metadata = {
@@ -30,7 +30,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#4f46e5",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f5fa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f0d17" },
+  ],
+  viewportFit: "cover",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -38,8 +42,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={`${geistSans.variable} h-full antialiased`}>
-      <body className="min-h-full bg-slate-50 font-sans text-slate-900">
+    <html lang="tr" suppressHydrationWarning className={`${jakarta.variable} h-full antialiased`}>
+      <head>
+        {/* Tema sınıfını boyamadan önce uygula (koyu modda beyaz yanıp sönmeyi önler) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("theme")||"system";if(t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`,
+          }}
+        />
+      </head>
+      <body className="min-h-full font-sans text-slate-900">
         <Providers>{children}</Providers>
       </body>
     </html>

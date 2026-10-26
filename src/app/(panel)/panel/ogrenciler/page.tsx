@@ -18,7 +18,7 @@ import {
   User,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, SectionTitle, Badge } from "@/components/ui";
+import { Card, PageHeader, SectionTitle, Badge } from "@/components/ui";
 import UserAvatar from "@/components/UserAvatar";
 import { subscribeStudents, updateStudentSettings } from "@/lib/services/users";
 import { refreshParentView } from "@/lib/services/parent";
@@ -157,19 +157,19 @@ export default function StudentsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold">Öğrenciler</h1>
+      <PageHeader title="Öğrenciler" subtitle={`${students.length} kayıtlı öğrenci`} />
 
-      <Card className="mt-4">
+      <Card>
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
           Öğretmen Kodunuz
         </p>
         <div className="mt-2 flex items-center gap-2">
-          <code className="flex-1 truncate rounded-lg bg-slate-100 px-3 py-2 text-xs">
+          <code className="flex-1 truncate rounded-xl bg-slate-100 px-3 py-2 text-xs">
             {profile.uid}
           </code>
           <button
             onClick={() => copy(profile.uid, "code")}
-            className="flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white"
+            className="flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white"
           >
             {copied === "code" ? <Check size={14} /> : <Copy size={14} />}
             Kopyala
@@ -240,13 +240,13 @@ export default function StudentsPage() {
                 {enrolled.slice(0, 4).map((sub) => (
                   <span
                     key={sub}
-                    className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                    className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
                   >
                     {sub}
                   </span>
                 ))}
                 {enrolled.length > 4 && (
-                  <span className="text-[10px] font-medium text-indigo-500">
+                  <span className="text-[11px] font-medium text-indigo-500">
                     +{enrolled.length - 4} ders daha
                   </span>
                 )}
@@ -256,7 +256,7 @@ export default function StudentsPage() {
               <button
                 type="button"
                 onClick={() => setSelectedDetailStudent(s)}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-50 py-2.5 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 dark:bg-indigo-950/70 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-50 py-2.5 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 dark:bg-indigo-950/70 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
               >
                 <User size={15} />
                 Öğrenci Profili & Geçmişi (Ders Günleri, Konular, Ödemeler)
@@ -268,7 +268,7 @@ export default function StudentsPage() {
                   onClick={() =>
                     copy(`${window.location.origin}/veli/${s.parentToken}`, s.uid)
                   }
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   {copied === s.uid ? <Check size={14} /> : <Link2 size={14} />}
                   Veli Bağlantısı
@@ -276,7 +276,7 @@ export default function StudentsPage() {
                 <button
                   onClick={() => handleSync(s.uid)}
                   disabled={syncing === s.uid}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-indigo-600 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50"
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50"
                 >
                   <RefreshCw
                     size={14}
@@ -292,7 +292,7 @@ export default function StudentsPage() {
                 onClick={() =>
                   setExpandedStudent(isExpanded ? null : s.uid)
                 }
-                className="mt-2.5 flex w-full items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="mt-2.5 flex w-full items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 <span className="flex items-center gap-1.5">
                   <User size={14} className="text-indigo-500" />
@@ -303,7 +303,7 @@ export default function StudentsPage() {
 
               {/* Genişletilmiş Öğrenci & Özel Ders Detay Paneli */}
               {isExpanded && (
-                <div className="mt-3 space-y-3.5 rounded-xl border border-indigo-100 bg-indigo-50/30 p-3 dark:border-indigo-950 dark:bg-indigo-950/20">
+                <div className="mt-3 space-y-3.5 rounded-2xl border border-indigo-100 bg-indigo-50/30 p-3 dark:border-indigo-950 dark:bg-indigo-950/20">
                   {/* Sınıf, Grup ve Hedef Seçimi */}
                   <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
                     <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
@@ -313,7 +313,7 @@ export default function StudentsPage() {
                         onChange={(e) =>
                           handleGradeChange(s, parseInt(e.target.value, 10))
                         }
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#151f31]"
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#1a1726]"
                       >
                         {Array.from({ length: 12 }, (_, i) => i + 1).map((g) => (
                           <option key={g} value={g}>
@@ -330,7 +330,7 @@ export default function StudentsPage() {
                         onChange={(e) =>
                           handleGroupChange(s, e.target.value as TargetGroup)
                         }
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#151f31]"
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#1a1726]"
                       >
                         {Object.entries(TARGET_GROUP_LABELS).map(([v, l]) => (
                           <option key={v} value={v}>
@@ -351,13 +351,13 @@ export default function StudentsPage() {
                             weeklyTarget: parseInt(e.target.value, 10) || 0,
                           })
                         }
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#151f31]"
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#1a1726]"
                       />
                     </label>
                   </div>
 
                   {/* Takip Edilen / Özel Ders Alınan Dersler */}
-                  <div className="rounded-lg bg-white p-2.5 dark:bg-[#151f31]">
+                  <div className="rounded-xl bg-white p-2.5 dark:bg-[#1a1726]">
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-200">
                         <BookOpen size={13} className="text-indigo-500" />
@@ -382,7 +382,7 @@ export default function StudentsPage() {
                             key={subj}
                             type="button"
                             onClick={() => handleToggleSubject(s, subj)}
-                            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+                            className={`rounded-xl px-2.5 py-1 text-xs font-medium transition ${
                               isSelected
                                 ? "bg-indigo-600 text-white shadow-xs"
                                 : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400"
@@ -409,7 +409,7 @@ export default function StudentsPage() {
                             parentName: e.target.value.trim(),
                           })
                         }
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#151f31]"
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#1a1726]"
                       />
                     </label>
 
@@ -427,13 +427,13 @@ export default function StudentsPage() {
                               parentPhone: e.target.value.trim(),
                             })
                           }
-                          className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#151f31]"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#1a1726]"
                         />
                         {cleanParentPhone && (
                           <>
                             <a
                               href={`tel:${cleanParentPhone}`}
-                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                              className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                               title="Veliye Telefon Aç"
                             >
                               <Phone size={13} />
@@ -442,7 +442,7 @@ export default function StudentsPage() {
                               href={`https://wa.me/90${cleanParentPhone.replace(/^0/, "")}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                              className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
                               title="Veliye WhatsApp Mesajı Gönder"
                             >
                               <MessageCircle size={13} />
@@ -463,7 +463,7 @@ export default function StudentsPage() {
                             schoolName: e.target.value.trim(),
                           })
                         }
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#151f31]"
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#1a1726]"
                       />
                     </label>
 
@@ -481,13 +481,13 @@ export default function StudentsPage() {
                               studentPhone: e.target.value.trim(),
                             })
                           }
-                          className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#151f31]"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#1a1726]"
                         />
                         {cleanStudentPhone && (
                           <>
                             <a
                               href={`tel:${cleanStudentPhone}`}
-                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                              className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                               title="Öğrenciyi Ara"
                             >
                               <Phone size={13} />
@@ -496,7 +496,7 @@ export default function StudentsPage() {
                               href={`https://wa.me/90${cleanStudentPhone.replace(/^0/, "")}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                              className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
                               title="Öğrenciye WhatsApp Yaz"
                             >
                               <MessageCircle size={13} />
@@ -523,7 +523,7 @@ export default function StudentsPage() {
                               hourlyRate: parseInt(e.target.value, 10) || 0,
                             })
                           }
-                          className="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-2.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#151f31]"
+                          className="w-full rounded-xl border border-slate-200 bg-white py-1.5 pl-8 pr-2.5 text-xs outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-[#1a1726]"
                         />
                       </div>
                     </label>
@@ -533,14 +533,14 @@ export default function StudentsPage() {
 
             <button
               onClick={() => setNoteFor(noteFor === s.uid ? null : s.uid)}
-              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-indigo-200 py-2 text-xs font-semibold text-indigo-600"
+              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-indigo-200 py-2 text-xs font-semibold text-indigo-600"
             >
               <StickyNote size={14} /> Not Yaz
             </button>
 
             {noteFor === s.uid && (
-              <div className="mt-2 space-y-2 rounded-xl bg-slate-50 p-3">
-                <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-200/60 p-1">
+              <div className="mt-2 space-y-2 rounded-2xl bg-slate-50 p-3">
+                <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-200/60 p-1">
                   {(
                     [
                       ["STUDENT", "Öğrenciye"],
@@ -567,11 +567,11 @@ export default function StudentsPage() {
                   placeholder="Notunuzu yazın..."
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-indigo-400"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-indigo-400"
                 />
                 <button
                   onClick={() => handleSendNote(s.uid)}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 py-2 text-xs font-semibold text-white"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-indigo-600 py-2 text-xs font-semibold text-white"
                 >
                   <Send size={13} /> Gönder
                 </button>
@@ -583,11 +583,11 @@ export default function StudentsPage() {
                 {notes[s.uid].slice(0, 3).map((n) => (
                   <div
                     key={n.id}
-                    className="flex items-start justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-2"
+                    className="flex items-start justify-between gap-2 rounded-xl bg-slate-50 px-2.5 py-2"
                   >
                     <div className="flex-1">
                       <p className="text-xs text-slate-700">{n.text}</p>
-                      <p className="mt-0.5 text-[10px] text-slate-400">
+                      <p className="mt-0.5 text-[11px] text-slate-400">
                         {n.audience === "STUDENT"
                           ? "Öğrenciye"
                           : n.audience === "PARENT"

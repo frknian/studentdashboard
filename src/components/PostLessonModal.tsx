@@ -212,18 +212,18 @@ export default function PostLessonModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-0 sm:p-4 backdrop-blur-xs transition-opacity"
+      className="fixed inset-0 z-50 flex animate-fade-in items-end justify-center bg-slate-950/60 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-t-3xl sm:rounded-2xl bg-white p-5 shadow-2xl max-h-[92vh] flex flex-col overflow-hidden dark:bg-[#151f31] dark:border dark:border-slate-800"
+        className="flex max-h-[92dvh] w-full max-w-lg animate-sheet-up flex-col overflow-hidden rounded-t-[28px] bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-5 shadow-float sm:animate-fade-up sm:rounded-[28px] dark:bg-[#1a1726]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Başlık */}
         <div className="flex items-start justify-between border-b border-slate-100 pb-3 dark:border-slate-800 shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs dark:bg-indigo-900/40 dark:text-indigo-300">
+              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 font-bold text-xs dark:bg-indigo-900/40 dark:text-indigo-300">
                 ✓
               </span>
               <h2 className="text-base font-bold text-slate-900 dark:text-white">
@@ -239,7 +239,7 @@ export default function PostLessonModal({
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             aria-label="Kapat"
           >
             <X size={20} />
@@ -249,7 +249,7 @@ export default function PostLessonModal({
         {/* İçerik Alanı (Kaydırılabilir) */}
         <div className="flex-1 overflow-y-auto py-3 space-y-4 pr-1">
           {err && (
-            <div className="rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700 border border-rose-200">
+            <div className="rounded-2xl bg-rose-50 p-3 text-xs font-semibold text-rose-700 border border-rose-200">
               {err}
             </div>
           )}
@@ -257,7 +257,7 @@ export default function PostLessonModal({
           {/* 1. BÖLÜM: Derste Yapılanlar & Notlar */}
           <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-900/50 space-y-2.5">
             <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white">
                 1
               </span>
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -270,7 +270,7 @@ export default function PostLessonModal({
               placeholder="Konu başlığı (örn. Analitik Geometri - Noktanın Analitiği)"
               value={materialTitle}
               onChange={(e) => setMaterialTitle(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
             />
 
             <textarea
@@ -278,7 +278,7 @@ export default function PostLessonModal({
               placeholder="Derste neler yapıldı? (İşlenen konular, kavranan formüller, çözülen soru tipleri, dikkat edilmesi gerekenler...)"
               value={lessonSummary}
               onChange={(e) => setLessonSummary(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
             />
 
             <div className="relative">
@@ -290,7 +290,7 @@ export default function PostLessonModal({
                 placeholder="Google Drive / Doküman Linki (https://drive.google.com/...)"
                 value={driveLink}
                 onChange={(e) => setDriveLink(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white pl-8 pr-3 py-2 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                className="w-full rounded-2xl border border-slate-200 bg-white pl-8 pr-3 py-2 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
               />
             </div>
 
@@ -304,7 +304,7 @@ export default function PostLessonModal({
                 accept="image/*,application/pdf"
                 multiple
                 onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 5))}
-                className="mt-1 w-full text-xs text-slate-500 file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-white hover:file:bg-indigo-700"
+                className="mt-1 w-full text-xs text-slate-500 file:mr-2 file:rounded-xl file:border-0 file:bg-indigo-600 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-white hover:file:bg-indigo-700"
               />
             </div>
           </div>
@@ -313,7 +313,7 @@ export default function PostLessonModal({
           <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-900/50 space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white">
                   2
                 </span>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -344,7 +344,7 @@ export default function PostLessonModal({
                         setHwTopic("");
                         if (s) setHwTitle(`${s} Ödevi`);
                       }}
-                      className="mt-0.5 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                      className="mt-0.5 w-full rounded-2xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
                     >
                       <option value="">Ders seçin</option>
                       {availableSubjects.map((s) => (
@@ -365,7 +365,7 @@ export default function PostLessonModal({
                         if (hwSubject && t) setHwTitle(`${hwSubject} - ${t}`);
                       }}
                       disabled={!hwSubject}
-                      className="mt-0.5 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c] disabled:opacity-50"
+                      className="mt-0.5 w-full rounded-2xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d] disabled:opacity-50"
                     >
                       <option value="">Konu seçin</option>
                       {availableTopics.map((t) => (
@@ -382,7 +382,7 @@ export default function PostLessonModal({
                   placeholder="Ödev başlığı (örn. Matematik - Test 1 ve 2)"
                   value={hwTitle}
                   onChange={(e) => setHwTitle(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
                 />
 
                 <textarea
@@ -390,7 +390,7 @@ export default function PostLessonModal({
                   placeholder="Ödev detayları & yönergeler (örn. Kitap sayfa 40-52 arası çözülecek, yapamadıkların soru kumbarasına yüklenecek)"
                   value={hwDesc}
                   onChange={(e) => setHwDesc(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
                 />
 
                 <div className="grid grid-cols-2 gap-2">
@@ -403,7 +403,7 @@ export default function PostLessonModal({
                       placeholder="Örn. 30"
                       value={hwTarget}
                       onChange={(e) => setHwTarget(e.target.value)}
-                      className="mt-0.5 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                      className="mt-0.5 w-full rounded-2xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
                     />
                   </div>
 
@@ -413,7 +413,7 @@ export default function PostLessonModal({
                       type="date"
                       value={hwDueDate}
                       onChange={(e) => setHwDueDate(e.target.value)}
-                      className="mt-0.5 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                      className="mt-0.5 w-full rounded-2xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
                     />
                   </div>
                 </div>
@@ -427,7 +427,7 @@ export default function PostLessonModal({
                     placeholder="Ödev Drive / Doküman Linki (isteğe bağlı)"
                     value={hwDriveLink}
                     onChange={(e) => setHwDriveLink(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white pl-8 pr-3 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                    className="w-full rounded-2xl border border-slate-200 bg-white pl-8 pr-3 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
                   />
                 </div>
               </div>
@@ -437,7 +437,7 @@ export default function PostLessonModal({
           {/* 3. BÖLÜM: Ders Ücreti & Tahsilat */}
           <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-900/50 space-y-2.5">
             <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white">
                 3
               </span>
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -459,7 +459,7 @@ export default function PostLessonModal({
                     placeholder="0"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white pl-7 pr-3 py-2 text-sm font-semibold outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                    className="w-full rounded-2xl border border-slate-200 bg-white pl-7 pr-3 py-2 text-sm font-semibold outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
                   />
                 </div>
               </div>
@@ -469,7 +469,7 @@ export default function PostLessonModal({
                 <select
                   value={paymentStatus}
                   onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
-                  className="mt-0.5 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                  className="mt-0.5 w-full rounded-2xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
                 >
                   <option value="PAID">✓ Ödendi (Nakit/Havale)</option>
                   <option value="UNPAID">⏳ Ödeme Bekliyor</option>
@@ -482,7 +482,7 @@ export default function PostLessonModal({
           <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-900/50 space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[11px] font-bold text-white">
                   4
                 </span>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -506,7 +506,7 @@ export default function PostLessonModal({
               placeholder="Veli portalında veliye görünecek ders sonu değerlendirme notu..."
               value={parentNote}
               onChange={(e) => setParentNote(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
             />
           </div>
         </div>
@@ -516,7 +516,7 @@ export default function PostLessonModal({
           <button
             onClick={handleCompleteLesson}
             disabled={busy}
-            className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
+            className="flex-1 rounded-2xl bg-emerald-600 py-3 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
           >
             {busy ? (
               <>
@@ -530,7 +530,7 @@ export default function PostLessonModal({
           </button>
           <button
             onClick={onClose}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-[#0f1a2c] dark:text-slate-300"
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-[#14111d] dark:text-slate-300"
           >
             Vazgeç
           </button>

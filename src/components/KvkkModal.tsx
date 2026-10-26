@@ -6,11 +6,11 @@ import { KVKK_TEXT } from "@/lib/kvkk";
 export default function KvkkModal({ onClose }: { onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-6"
+      className="fixed inset-0 z-[70] flex animate-fade-in items-end justify-center bg-slate-950/60 backdrop-blur-sm sm:items-center sm:p-6"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[85dvh] w-full max-w-lg flex-col rounded-t-2xl bg-white dark:bg-[#151f31] sm:rounded-2xl"
+        className="flex max-h-[88dvh] w-full max-w-lg animate-sheet-up flex-col overflow-hidden rounded-t-[28px] bg-white pb-[env(safe-area-inset-bottom)] sm:animate-fade-up sm:rounded-[28px] sm:pb-0 dark:bg-[#1a1726]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
@@ -27,7 +27,7 @@ export default function KvkkModal({ onClose }: { onClose: () => void }) {
         <div className="border-t border-slate-200 p-3 dark:border-slate-700">
           <button
             onClick={onClose}
-            className="w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white"
+            className="w-full rounded-2xl bg-indigo-600 py-2.5 text-sm font-semibold text-white"
           >
             Okudum, Anladım
           </button>

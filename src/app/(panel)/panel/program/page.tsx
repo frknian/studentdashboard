@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Badge, Card } from "@/components/ui";
+import { Badge, Card, PageHeader } from "@/components/ui";
 import StudentPicker from "@/components/StudentPicker";
 import ScheduleImportModal from "@/components/ScheduleImportModal";
 import {
@@ -75,20 +75,20 @@ function NavHeader({
     <div className="mt-4 flex items-center justify-between">
       <button
         onClick={onPrev}
-        className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+        className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
         aria-label="Geri"
       >
         <ChevronLeft size={18} />
       </button>
       <button
         onClick={onToday}
-        className="rounded-lg px-3 py-1.5 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+        className="rounded-xl px-3 py-1.5 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
       >
         {label}
       </button>
       <button
         onClick={onNext}
-        className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+        className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
         aria-label="İleri"
       >
         <ChevronRight size={18} />
@@ -183,11 +183,11 @@ function AddPlanModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex animate-fade-in items-end justify-center bg-slate-950/60 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl dark:bg-[#151f31] dark:border dark:border-slate-800"
+        className="w-full max-w-md max-h-[92dvh] animate-sheet-up overflow-y-auto rounded-t-[28px] bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-5 shadow-float sm:animate-fade-up sm:rounded-[28px] dark:bg-[#1a1726]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
@@ -199,7 +199,7 @@ function AddPlanModal({
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="rounded-xl p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             aria-label="Kapat"
           >
             <X size={18} />
@@ -218,7 +218,7 @@ function AddPlanModal({
                 setTopic("");
                 setCustomTopic("");
               }}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
             >
               {availableSubjects.map((s) => (
                 <option key={s} value={s}>
@@ -235,7 +235,7 @@ function AddPlanModal({
             <select
               value={topic === "__CUSTOM__" ? "__CUSTOM__" : selectedTopicValue}
               onChange={(e) => setTopic(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
             >
               {topicsForSubject.map((t) => (
                 <option key={t} value={t}>
@@ -256,7 +256,7 @@ function AddPlanModal({
                 placeholder="Özel konu başlığı girin..."
                 value={customTopic}
                 onChange={(e) => setCustomTopic(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-indigo-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                className="mt-1 w-full rounded-2xl border border-indigo-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
               />
             </div>
           )}
@@ -272,12 +272,12 @@ function AddPlanModal({
               placeholder="Örn. 30"
               value={target}
               onChange={(e) => setTarget(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
             />
           </div>
 
           {isTeacher && canAddToCalendar && (
-            <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3 dark:border-indigo-900/40 dark:bg-indigo-950/20 space-y-2">
+            <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-3 dark:border-indigo-900/40 dark:bg-indigo-950/20 space-y-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -298,7 +298,7 @@ function AddPlanModal({
                       type="time"
                       value={lessonTime}
                       onChange={(e) => setLessonTime(e.target.value)}
-                      className="mt-0.5 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                      className="mt-0.5 w-full rounded-2xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
                     />
                   </div>
                   <div>
@@ -309,7 +309,7 @@ function AddPlanModal({
                       step={15}
                       value={lessonDuration}
                       onChange={(e) => setLessonDuration(e.target.value)}
-                      className="mt-0.5 w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+                      className="mt-0.5 w-full rounded-2xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
                     />
                   </div>
                 </div>
@@ -321,14 +321,14 @@ function AddPlanModal({
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+              className="flex-1 rounded-2xl bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
             >
               {saving ? "Ekleniyor..." : "Plana Ekle"}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-[#0f1a2c] dark:text-slate-300"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-[#14111d] dark:text-slate-300"
             >
               Vazgeç
             </button>
@@ -380,11 +380,11 @@ function StudentCompleteModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex animate-fade-in items-end justify-center bg-slate-950/60 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl dark:bg-[#151f31] dark:border dark:border-slate-800"
+        className="w-full max-w-md max-h-[92dvh] animate-sheet-up overflow-y-auto rounded-t-[28px] bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-5 shadow-float sm:animate-fade-up sm:rounded-[28px] dark:bg-[#1a1726]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
@@ -396,7 +396,7 @@ function StudentCompleteModal({
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="rounded-xl p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             aria-label="Kapat"
           >
             <X size={18} />
@@ -415,7 +415,7 @@ function StudentCompleteModal({
               placeholder="Çözülen soru sayısı"
               value={solved}
               onChange={(e) => setSolved(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
             />
           </div>
 
@@ -428,7 +428,7 @@ function StudentCompleteModal({
               placeholder="Çalıştığın konu veya kısa not..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#0f1a2c]"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-[#14111d]"
             />
           </div>
 
@@ -436,14 +436,14 @@ function StudentCompleteModal({
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="flex-1 rounded-2xl bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
             >
               {saving ? "Kaydediliyor..." : "Tamamla"}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-[#0f1a2c] dark:text-slate-300"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-[#14111d] dark:text-slate-300"
             >
               Vazgeç
             </button>
@@ -506,7 +506,7 @@ function PlanItemRow({
 
           <div className="flex items-center gap-1 shrink-0">
             {plan.targetQuestions > 0 && (
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[11px] text-slate-400">
                 {plan.targetQuestions} soru
               </span>
             )}
@@ -528,7 +528,7 @@ function PlanItemRow({
         </div>
 
         {plan.isCompleted && (plan.solvedQuestions || plan.studentNote) && (
-          <p className="mt-1 rounded-lg bg-emerald-50/70 p-1.5 text-[11px] text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+          <p className="mt-1 rounded-xl bg-emerald-50/70 p-1.5 text-[11px] text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
             {plan.solvedQuestions ? `${plan.solvedQuestions} soru çözüldü. ` : ""}
             {plan.studentNote}
           </p>
@@ -560,23 +560,22 @@ export default function ProgramPage() {
   if (isTeacher) {
     return (
       <div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold">Program Oluştur</h1>
-            <p className="text-xs text-slate-500">
-              Öğrencinize haftalık ders çalışma hedefleri ve planı belirleyin
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowImportModal(true)}
-            className="flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 transition-colors shadow-xs w-fit"
-          >
-            <Sparkles size={14} /> Program İçe Aktar (Excel / PDF / Görsel)
-          </button>
-        </div>
+        <PageHeader
+          title="Program"
+          subtitle="Öğrencinize haftalık çalışma planı belirleyin"
+          action={
+            <button
+              type="button"
+              onClick={() => setShowImportModal(true)}
+              className="flex items-center gap-1.5 rounded-2xl bg-indigo-50 px-3.5 py-2.5 text-sm font-bold text-indigo-700 dark:text-indigo-200"
+              aria-label="Program içe aktar (Excel / PDF / Görsel)"
+            >
+              <Sparkles size={16} /> İçe Aktar
+            </button>
+          }
+        />
 
-        <div className="mt-4">
+        <div>
           <StudentPicker
             students={students}
             value={selectedStudent}
@@ -612,10 +611,10 @@ export default function ProgramPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold">Çalışma Programım</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        Öğretmeninin hazırladığı programı takip et, bitirdikçe işaretle.
-      </p>
+      <PageHeader
+        title="Programım"
+        subtitle="Öğretmeninin hazırladığı programı takip et, bitirdikçe işaretle."
+      />
       <ProgramView
         studentId={profile.uid}
         studentProfile={profile}
@@ -862,7 +861,7 @@ function ProgramView({
             href={`/yazdir?ogrenci=${studentId}&hafta=${wKey}`}
             target="_blank"
             rel="noreferrer"
-            className="mt-4 flex shrink-0 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-[#151f31] dark:text-slate-200"
+            className="mt-4 flex shrink-0 items-center gap-1 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-[#1a1726] dark:text-slate-200"
           >
             <FileDown size={14} /> PDF
           </a>
@@ -920,10 +919,10 @@ function ProgramView({
             return (
               <div
                 key={key}
-                className={`flex flex-col rounded-2xl bg-white p-3.5 ring-1 transition dark:bg-[#151f31] ${
+                className={`flex flex-col rounded-2xl bg-white p-3.5 ring-1 transition dark:bg-[#1a1726] ${
                   isToday
                     ? "ring-2 ring-indigo-500 shadow-xs"
-                    : "ring-slate-100 dark:ring-[#22314d]"
+                    : "ring-slate-100 dark:ring-[#2a243a]"
                 }`}
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2 dark:border-slate-800/80">
@@ -942,10 +941,10 @@ function ProgramView({
                   </p>
                   {items.length > 0 && (
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                         doneCount === items.length
                           ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300"
-                          : "bg-slate-100 text-slate-600 dark:bg-[#1e2a40] dark:text-slate-300"
+                          : "bg-slate-100 text-slate-600 dark:bg-[#241f33] dark:text-slate-300"
                       }`}
                     >
                       {doneCount}/{items.length}
@@ -983,7 +982,7 @@ function ProgramView({
                         }`,
                       })
                     }
-                    className="mt-2 flex items-center justify-center gap-1 rounded-xl border border-dashed border-slate-200 py-1.5 text-xs font-semibold text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50/50 dark:border-slate-800 transition-colors"
+                    className="mt-2 flex items-center justify-center gap-1 rounded-2xl border border-dashed border-slate-200 py-1.5 text-xs font-semibold text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50/50 dark:border-slate-800 transition-colors"
                   >
                     <Plus size={13} /> Ders / Konu Ekle
                   </button>
@@ -1068,7 +1067,7 @@ function ProgramView({
 
         {/* Takvim Izgarası */}
         <Card className="mt-3 p-3">
-          <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-slate-400 pb-1">
+          <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-slate-400 pb-1">
             {DAY_NAMES.map((d) => (
               <div key={d}>{d}</div>
             ))}
@@ -1084,7 +1083,7 @@ function ProgramView({
                 <button
                   key={key}
                   onClick={() => setSelectedDay(key)}
-                  className={`flex min-h-10 flex-col items-center justify-center rounded-xl py-1 text-xs font-medium transition ${
+                  className={`flex min-h-10 flex-col items-center justify-center rounded-2xl py-1 text-xs font-medium transition ${
                     isSelected
                       ? "bg-indigo-600 text-white font-bold"
                       : isToday
@@ -1166,14 +1165,14 @@ function ProgramView({
   return (
     <div>
       {/* Görünüm Seçici Sekmeler */}
-      <div className="mt-4 flex rounded-2xl bg-slate-100 p-1 dark:bg-[#151f31]">
+      <div className="mt-4 flex rounded-2xl bg-slate-100 p-1 dark:bg-[#1a1726]">
         {(["DAILY", "WEEKLY", "MONTHLY"] as PlanType[]).map((t) => (
           <button
             key={t}
             onClick={() => setView(t)}
-            className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${
+            className={`flex-1 rounded-2xl py-2 text-xs font-bold transition-all ${
               view === t
-                ? "bg-white text-indigo-600 shadow-xs dark:bg-[#0f1a2c] dark:text-indigo-400"
+                ? "bg-white text-indigo-600 shadow-xs dark:bg-[#14111d] dark:text-indigo-400"
                 : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
             }`}
           >
