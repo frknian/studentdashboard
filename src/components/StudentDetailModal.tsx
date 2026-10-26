@@ -200,8 +200,8 @@ export default function StudentDetailModal({
   }, [parentPhoneClean, student.displayName, student.parentToken, finance]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in">
-      <div className="relative flex max-h-[92vh] w-full max-w-lg flex-col rounded-3xl bg-white shadow-2xl overflow-hidden dark:bg-[#151f31]">
+    <div className="fixed inset-0 z-50 flex animate-fade-in items-end justify-center bg-slate-950/60 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="relative flex max-h-[92dvh] w-full max-w-lg animate-sheet-up flex-col overflow-hidden rounded-t-[28px] bg-white pb-[env(safe-area-inset-bottom)] shadow-float sm:animate-fade-up sm:rounded-[28px] sm:pb-0 dark:bg-[#1a1726]">
         {/* Üst Başlık Barı */}
         <div className="flex items-start justify-between border-b border-slate-100 p-4 dark:border-slate-800">
           <div className="flex items-center gap-3">
@@ -240,11 +240,11 @@ export default function StudentDetailModal({
         </div>
 
         {/* Başlangıç Tarihi & Hızlı İletişim Şeridi */}
-        <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 text-xs border-b border-slate-100 dark:bg-[#0f1a2c] dark:border-slate-800">
+        <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 text-xs border-b border-slate-100 dark:bg-[#14111d] dark:border-slate-800">
           <div className="flex items-center gap-2">
             <Calendar size={16} className="text-indigo-500 shrink-0" />
             <div>
-              <p className="text-[10px] text-slate-400 uppercase font-semibold">
+              <p className="text-[11px] text-slate-400 uppercase font-semibold">
                 Ne Zaman Başladı?
               </p>
               <p className="font-bold text-slate-700 dark:text-slate-200">
@@ -257,7 +257,7 @@ export default function StudentDetailModal({
           <div className="flex items-center gap-2 justify-end">
             <Coins size={16} className="text-emerald-500 shrink-0" />
             <div className="text-right">
-              <p className="text-[10px] text-slate-400 uppercase font-semibold">
+              <p className="text-[11px] text-slate-400 uppercase font-semibold">
                 Saatlik Ücret
               </p>
               <p className="font-bold text-emerald-600">
@@ -268,7 +268,7 @@ export default function StudentDetailModal({
         </div>
 
         {/* Tab Menüsü */}
-        <div className="flex border-b border-slate-100 bg-white px-2 pt-2 dark:bg-[#151f31] dark:border-slate-800">
+        <div className="flex border-b border-slate-100 bg-white px-2 pt-2 dark:bg-[#1a1726] dark:border-slate-800">
           {(
             [
               ["overview", "Genel"],
@@ -299,19 +299,19 @@ export default function StudentDetailModal({
               {/* Finans Özeti Kartları */}
               <div className="grid grid-cols-3 gap-2">
                 <Card className="text-center p-3">
-                  <p className="text-[10px] uppercase font-bold text-slate-400">Ders Saati</p>
+                  <p className="text-[11px] uppercase font-bold text-slate-400">Ders Saati</p>
                   <p className="mt-1 text-lg font-bold text-indigo-600">{finance.totalHours} sa</p>
-                  <p className="text-[10px] text-slate-400">{finance.completedCount} tamamlandı</p>
+                  <p className="text-[11px] text-slate-400">{finance.completedCount} tamamlandı</p>
                 </Card>
                 <Card className="text-center p-3">
-                  <p className="text-[10px] uppercase font-bold text-slate-400">Tahsil Edilen</p>
+                  <p className="text-[11px] uppercase font-bold text-slate-400">Tahsil Edilen</p>
                   <p className="mt-1 text-lg font-bold text-emerald-600">₺{finance.totalPaid}</p>
-                  <p className="text-[10px] text-emerald-600">Ödendi</p>
+                  <p className="text-[11px] text-emerald-600">Ödendi</p>
                 </Card>
                 <Card className="text-center p-3">
-                  <p className="text-[10px] uppercase font-bold text-slate-400">Bekleyen</p>
+                  <p className="text-[11px] uppercase font-bold text-slate-400">Bekleyen</p>
                   <p className="mt-1 text-lg font-bold text-rose-600">₺{finance.totalUnpaid}</p>
-                  <p className="text-[10px] text-rose-500">Ödeme bekliyor</p>
+                  <p className="text-[11px] text-rose-500">Ödeme bekliyor</p>
                 </Card>
               </div>
 
@@ -337,7 +337,7 @@ export default function StudentDetailModal({
                     href={whatsappReportUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700"
+                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-2xl bg-emerald-600 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700"
                   >
                     <MessageCircle size={15} />
                     Veliye Hesap ve Ders Raporu Gönder (WhatsApp)
@@ -365,7 +365,7 @@ export default function StudentDetailModal({
                 <button
                   type="button"
                   onClick={() => setShowRemoveConfirm(true)}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-rose-200 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:border-rose-900/60 dark:hover:bg-rose-950/30"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-rose-200 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:border-rose-900/60 dark:hover:bg-rose-950/30"
                 >
                   <UserMinus size={15} />
                   Öğrenciyi Öğretmen Listemden Çıkar
@@ -410,7 +410,7 @@ export default function StudentDetailModal({
                           type="button"
                           onClick={() => handleTogglePayment(lesson)}
                           disabled={togglingPayment === lesson.id}
-                          className={`rounded-md px-2 py-0.5 text-[10px] font-semibold transition ${
+                          className={`rounded-md px-2 py-0.5 text-[11px] font-semibold transition ${
                             lesson.paymentStatus === "PAID"
                               ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                               : "bg-rose-100 text-rose-700 hover:bg-rose-200"
@@ -421,7 +421,7 @@ export default function StudentDetailModal({
                       </div>
                     </div>
                     {lesson.parentNote && (
-                      <p className="rounded-lg bg-slate-50 p-2 text-[11px] text-slate-600 dark:bg-slate-800/60 dark:text-slate-300">
+                      <p className="rounded-xl bg-slate-50 p-2 text-[11px] text-slate-600 dark:bg-slate-800/60 dark:text-slate-300">
                         <span className="font-semibold">Derste Yapılanlar: </span>
                         {lesson.parentNote}
                       </p>
@@ -446,16 +446,16 @@ export default function StudentDetailModal({
                     {studiedTopics.map((t, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center justify-between rounded-xl bg-slate-50 p-2.5 text-xs dark:bg-slate-800/60"
+                        className="flex items-center justify-between rounded-2xl bg-slate-50 p-2.5 text-xs dark:bg-slate-800/60"
                       >
                         <span className="font-semibold text-slate-800 dark:text-slate-200">
                           {t.topic}
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                          <span className="rounded bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
                             {t.count} ders
                           </span>
-                          <span className="text-[10px] text-slate-400">
+                          <span className="text-[11px] text-slate-400">
                             {t.lastDate.toLocaleDateString("tr-TR")}
                           </span>
                         </div>
@@ -476,7 +476,7 @@ export default function StudentDetailModal({
                     {completedTasks.map((task) => (
                       <div
                         key={task.id}
-                        className="rounded-xl border border-slate-100 p-2.5 text-xs dark:border-slate-800"
+                        className="rounded-2xl border border-slate-100 p-2.5 text-xs dark:border-slate-800"
                       >
                         <div className="flex items-center justify-between">
                           <p className="font-semibold text-slate-800 dark:text-slate-200">{task.title}</p>
@@ -526,11 +526,11 @@ export default function StudentDetailModal({
                   {lessons.map((lesson) => (
                     <div
                       key={lesson.id}
-                      className="flex items-center justify-between rounded-xl border border-slate-100 p-2.5 text-xs dark:border-slate-800"
+                      className="flex items-center justify-between rounded-2xl border border-slate-100 p-2.5 text-xs dark:border-slate-800"
                     >
                       <div>
                         <p className="font-semibold">{lesson.subject}</p>
-                        <p className="text-[10px] text-slate-400">
+                        <p className="text-[11px] text-slate-400">
                           {lesson.startTime.toDate().toLocaleDateString("tr-TR")} • ₺{lesson.price || 0}
                         </p>
                       </div>
@@ -539,7 +539,7 @@ export default function StudentDetailModal({
                         type="button"
                         onClick={() => handleTogglePayment(lesson)}
                         disabled={togglingPayment === lesson.id}
-                        className={`flex items-center gap-1 rounded-lg px-3 py-1 text-xs font-bold transition ${
+                        className={`flex items-center gap-1 rounded-xl px-3 py-1 text-xs font-bold transition ${
                           lesson.paymentStatus === "PAID"
                             ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
                             : "bg-rose-100 text-rose-800 hover:bg-rose-200"
@@ -568,7 +568,7 @@ export default function StudentDetailModal({
         {/* Öğrenci Kaldırma Onay Modalı */}
         {showRemoveConfirm && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl dark:bg-[#151f31]">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl dark:bg-[#1a1726]">
               <div className="flex items-center gap-2 text-rose-600">
                 <AlertCircle size={22} />
                 <h3 className="font-bold text-slate-900 dark:text-white">
@@ -583,7 +583,7 @@ export default function StudentDetailModal({
                 <button
                   type="button"
                   onClick={() => setShowRemoveConfirm(false)}
-                  className="flex-1 rounded-xl border border-slate-200 py-2 text-xs font-semibold text-slate-600"
+                  className="flex-1 rounded-2xl border border-slate-200 py-2 text-xs font-semibold text-slate-600"
                 >
                   Vazgeç
                 </button>
@@ -591,7 +591,7 @@ export default function StudentDetailModal({
                   type="button"
                   onClick={handleRemoveStudent}
                   disabled={busyRemove}
-                  className="flex-1 rounded-xl bg-rose-600 py-2 text-xs font-semibold text-white hover:bg-rose-700"
+                  className="flex-1 rounded-2xl bg-rose-600 py-2 text-xs font-semibold text-white hover:bg-rose-700"
                 >
                   {busyRemove ? "Kaldırılıyor..." : "Evet, Kaldır"}
                 </button>

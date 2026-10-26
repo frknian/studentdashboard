@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, SectionTitle } from "@/components/ui";
+import { Card, PageHeader, SectionTitle } from "@/components/ui";
 
 const TEACHER_GUIDE = [
   {
@@ -67,11 +67,10 @@ export default function GuidePage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold">Kullanım Kılavuzu</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        {profile.role === "TEACHER" ? "Öğretmen" : "Öğrenci"} hesabı için adım adım
-        rehber.
-      </p>
+      <PageHeader
+        title="Kullanım Kılavuzu"
+        subtitle={`${profile.role === "TEACHER" ? "Öğretmen" : "Öğrenci"} hesabı için adım adım rehber.`}
+      />
 
       {sections.map((s) => (
         <div key={s.title}>

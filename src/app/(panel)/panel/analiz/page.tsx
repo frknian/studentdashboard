@@ -18,7 +18,7 @@ import {
   YAxis,
 } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, SectionTitle } from "@/components/ui";
+import { Card, PageHeader, SectionTitle } from "@/components/ui";
 import StudentPicker from "@/components/StudentPicker";
 import { addExam, subscribeExams } from "@/lib/services/exams";
 import {
@@ -326,19 +326,22 @@ export default function AnalysisPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Analiz</h1>
-        <button
-          onClick={() => setShowForm((v) => !v)}
-          disabled={!hasStudent}
-          className="flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-40"
-        >
-          <Plus size={16} /> Deneme Ekle
-        </button>
-      </div>
+      <PageHeader
+        title="Analiz"
+        subtitle="Deneme sonuçları ve soru istatistikleri"
+        action={
+          <button
+            onClick={() => setShowForm((v) => !v)}
+            disabled={!hasStudent}
+            className="flex items-center gap-1.5 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-indigo-600/25 disabled:opacity-40"
+          >
+            <Plus size={17} /> Deneme
+          </button>
+        }
+      />
 
       {isTeacher && (
-        <div className="mt-4">
+        <div>
           <StudentPicker
             students={students}
             value={selectedStudent}
@@ -366,7 +369,7 @@ export default function AnalysisPage() {
                   type="date"
                   value={logDate}
                   onChange={(e) => setLogDate(e.target.value)}
-                  className="w-36 rounded-lg border border-slate-200 px-2 py-2 text-sm outline-none focus:border-indigo-400"
+                  className="w-36 rounded-xl border border-slate-200 px-2 py-2 text-sm outline-none focus:border-indigo-400"
                 />
                 <input
                   type="number"
@@ -375,11 +378,11 @@ export default function AnalysisPage() {
                   placeholder="Soru sayısı"
                   value={logCount}
                   onChange={(e) => setLogCount(e.target.value)}
-                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+                  className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
                 />
                 <button
                   onClick={handleLogQuestions}
-                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
+                  className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
                 >
                   Ekle
                 </button>
@@ -395,20 +398,20 @@ export default function AnalysisPage() {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setWeekStart(addDays(weekStart, -7))}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"
+                className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100"
                 aria-label="Önceki hafta"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
                 onClick={() => setWeekStart(mondayOf())}
-                className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"
+                className="rounded-xl px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"
               >
                 Bu Hafta
               </button>
               <button
                 onClick={() => setWeekStart(addDays(weekStart, 7))}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"
+                className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100"
                 aria-label="Sonraki hafta"
               >
                 <ChevronRight size={16} />
@@ -427,7 +430,7 @@ export default function AnalysisPage() {
                   <XAxis dataKey="day" tick={{ fontSize: 10 }} stroke="#94a3b8" />
                   <YAxis tick={{ fontSize: 10 }} stroke="#94a3b8" allowDecimals={false} />
                   <Tooltip />
-                  <Bar dataKey="soru" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="soru" fill="#6d3fe6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -451,7 +454,7 @@ export default function AnalysisPage() {
                     <Line
                       type="monotone"
                       dataKey="net"
-                      stroke="#4f46e5"
+                      stroke="#6d3fe6"
                       strokeWidth={2.5}
                       dot={{ r: 3 }}
                     />
@@ -591,13 +594,13 @@ export default function AnalysisPage() {
                   placeholder="Deneme adı (örn. TYT Genel Deneme 5)"
                   value={examName}
                   onChange={(e) => setExamName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                  className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
                 />
                 <input
                   type="date"
                   value={examDate}
                   onChange={(e) => setExamDate(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                  className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
                 />
                 <div className="space-y-2">
                   <div className="grid grid-cols-[1fr_50px_50px_50px_48px] items-center gap-1.5 text-[11px] font-semibold text-slate-400">
@@ -623,7 +626,7 @@ export default function AnalysisPage() {
                           inputMode="numeric"
                           value={inputs[s]?.d ?? ""}
                           onChange={(e) => setInput(s, "d", e.target.value)}
-                          className="rounded-lg border border-slate-200 px-1 py-1.5 text-center text-sm outline-none focus:border-indigo-400"
+                          className="rounded-xl border border-slate-200 px-1 py-1.5 text-center text-sm outline-none focus:border-indigo-400"
                         />
                         <input
                           type="number"
@@ -631,7 +634,7 @@ export default function AnalysisPage() {
                           inputMode="numeric"
                           value={inputs[s]?.y ?? ""}
                           onChange={(e) => setInput(s, "y", e.target.value)}
-                          className="rounded-lg border border-slate-200 px-1 py-1.5 text-center text-sm outline-none focus:border-indigo-400"
+                          className="rounded-xl border border-slate-200 px-1 py-1.5 text-center text-sm outline-none focus:border-indigo-400"
                         />
                         <input
                           type="number"
@@ -639,7 +642,7 @@ export default function AnalysisPage() {
                           inputMode="numeric"
                           value={inputs[s]?.b ?? ""}
                           onChange={(e) => setInput(s, "b", e.target.value)}
-                          className="rounded-lg border border-slate-200 px-1 py-1.5 text-center text-sm outline-none focus:border-indigo-400"
+                          className="rounded-xl border border-slate-200 px-1 py-1.5 text-center text-sm outline-none focus:border-indigo-400"
                         />
                         <span className="text-right text-sm font-semibold text-indigo-600">
                           {has ? computeNet(d, y) : ""}
@@ -653,9 +656,9 @@ export default function AnalysisPage() {
                   placeholder="Anlamadığın konular (virgülle ayır: Türev, Paragraf...)"
                   value={weakInput}
                   onChange={(e) => setWeakInput(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                  className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
                 />
-                <div className="flex items-center justify-between rounded-xl bg-indigo-50 px-3 py-2.5">
+                <div className="flex items-center justify-between rounded-2xl bg-indigo-50 px-3 py-2.5">
                   <span className="text-sm font-semibold text-indigo-700">Toplam Net</span>
                   <span className="text-lg font-bold text-indigo-700">
                     {Math.round(totalNet * 100) / 100}
@@ -664,7 +667,7 @@ export default function AnalysisPage() {
                 <button
                   onClick={handleSaveExam}
                   disabled={saving}
-                  className="w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                  className="w-full rounded-2xl bg-indigo-600 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {saving ? "Kaydediliyor..." : "Denemeyi Kaydet"}
                 </button>

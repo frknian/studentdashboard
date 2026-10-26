@@ -2,8 +2,80 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Tasarım sistemi
+ * - "indigo" paleti marka rengine (iris / mor) yeniden eşlenir; tüm ekranlar
+ *   tek yerden yeni markayı alır.
+ * - "slate" paleti hafif mor tonlu nötrlere eşlenir.
+ */
+@theme {
+  --color-indigo-50: oklch(0.972 0.016 293);
+  --color-indigo-100: oklch(0.944 0.034 293);
+  --color-indigo-200: oklch(0.894 0.068 293);
+  --color-indigo-300: oklch(0.815 0.118 293);
+  --color-indigo-400: oklch(0.715 0.178 293);
+  --color-indigo-500: oklch(0.625 0.225 293);
+  --color-indigo-600: oklch(0.55 0.24 293);
+  --color-indigo-700: oklch(0.485 0.225 293);
+  --color-indigo-800: oklch(0.415 0.185 293);
+  --color-indigo-900: oklch(0.355 0.145 293);
+  --color-indigo-950: oklch(0.255 0.1 293);
+
+  --color-slate-50: oklch(0.984 0.004 293);
+  --color-slate-100: oklch(0.962 0.008 293);
+  --color-slate-200: oklch(0.922 0.012 293);
+  --color-slate-300: oklch(0.862 0.018 293);
+  --color-slate-400: oklch(0.705 0.024 293);
+  --color-slate-500: oklch(0.552 0.028 293);
+  --color-slate-600: oklch(0.452 0.03 293);
+  --color-slate-700: oklch(0.372 0.03 293);
+  --color-slate-800: oklch(0.282 0.028 293);
+  --color-slate-900: oklch(0.212 0.026 293);
+  --color-slate-950: oklch(0.152 0.022 293);
+
+  --shadow-card: 0 1px 2px rgb(30 20 60 / 0.04), 0 4px 16px -4px rgb(30 20 60 / 0.06);
+  --shadow-float: 0 8px 32px -8px rgb(30 20 60 / 0.25);
+
+  --animate-fade-up: fade-up 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  --animate-sheet-up: sheet-up 0.32s cubic-bezier(0.2, 0.9, 0.2, 1) backwards;
+  --animate-fade-in: fade-in 0.2s ease-out backwards;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes sheet-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --app-bg: #f6f5fa;
+  --app-card: #ffffff;
+  color-scheme: light;
 }
 
 html,
@@ -14,7 +86,78 @@ body {
 
 body {
   font-family: var(--font-sans);
+  background: var(--app-bg);
   -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+@layer base {
+  button,
+  a,
+  [role="button"],
+  input,
+  select,
+  textarea,
+  label {
+    touch-action: manipulation;
+  }
+
+  button:not(:disabled),
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  /* Basma geri bildirimi */
+  button,
+  a {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 150ms;
+  }
+  button:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
+  select,
+  textarea {
+    border-radius: 0.875rem;
+    transition: border-color 150ms, box-shadow 150ms;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--color-indigo-400);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-indigo-500) 16%, transparent);
+    outline: none;
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b84a3' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px;
+    padding-right: 2.25rem !important;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--color-indigo-600);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-indigo-500);
+    outline-offset: 2px;
+  }
+}
+
+/* Dokunmatik cihazlarda yeterli dokunma alanı */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
+  select {
+    min-height: 2.75rem;
+  }
 }
 
 /* Mobil cihazlarda input odağında otomatik ekran yakınlaşmasını (iOS zoom) önle */
@@ -31,25 +174,53 @@ input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
 }
 
+/* Yatay kaydırılabilir şeritlerde kaydırma çubuğunu gizle */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Giriş animasyonları "backwards" doldurulur: bitince transform kalmaz, yoksa
+   ana içerik fixed konumlu modallar için containing block olurdu. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Alt menüye (sabit) çarpmaması için güvenli alan boşluğu */
+@utility pb-nav {
+  padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+}
+
 /* -------- Koyu mod (pratik sınıf eşlemeleri) -------- */
+.dark {
+  --app-bg: #0f0d17;
+  --app-card: #1a1726;
+  color-scheme: dark;
+}
 .dark body {
-  background: #0b1220;
-  color: #e2e8f0;
+  color: #ebe8f5;
 }
 .dark .bg-white {
-  background-color: #151f31;
+  background-color: #1a1726;
 }
 .dark .bg-slate-50 {
-  background-color: #0b1220;
+  background-color: #14111d;
 }
 .dark .bg-slate-100 {
-  background-color: #1e2a40;
+  background-color: #241f33;
 }
 .dark .bg-indigo-50 {
-  background-color: #312e8144;
+  background-color: #3b2a7a40;
 }
 .dark .bg-indigo-50\/60 {
-  background-color: #312e8133;
+  background-color: #3b2a7a33;
 }
 .dark .bg-emerald-50 {
   background-color: #064e3b33;
@@ -57,42 +228,47 @@ input[type="number"]::-webkit-inner-spin-button {
 .dark .bg-amber-50 {
   background-color: #78350f33;
 }
+.dark .bg-rose-50 {
+  background-color: #88133733;
+}
 .dark .text-slate-900,
 .dark .text-slate-700,
 .dark .text-slate-600 {
-  color: #e2e8f0;
+  color: #ebe8f5;
 }
 .dark .text-slate-500 {
-  color: #94a3b8;
+  color: #a39cb8;
 }
 .dark .text-slate-800 {
-  color: #cbd5e1;
+  color: #d6d1e6;
 }
 .dark .border-slate-200,
 .dark .border-slate-100 {
-  border-color: #2a3a55;
+  border-color: #2e2840;
 }
 .dark .ring-slate-100 {
-  --tw-ring-color: #22314d;
+  --tw-ring-color: #2a243a;
 }
 .dark .ring-slate-200 {
-  --tw-ring-color: #2a3a55;
+  --tw-ring-color: #2e2840;
 }
-.dark .divide-slate-50 > * + * {
-  border-color: #1e2a40;
+.dark .divide-slate-50 > * + *,
+.dark .divide-slate-100 > * + * {
+  border-color: #241f33;
 }
 .dark input,
 .dark select,
 .dark textarea {
-  background-color: #0f1a2c;
-  border-color: #2a3a55;
-  color: #e2e8f0;
+  background-color: #14111d;
+  border-color: #2e2840;
+  color: #ebe8f5;
 }
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: #64748b;
+  color: #6f6886;
 }
-.dark .shadow-sm {
+.dark .shadow-sm,
+.dark .shadow-card {
   box-shadow: none;
 }
 

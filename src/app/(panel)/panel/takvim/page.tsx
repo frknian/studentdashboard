@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
 import { useAuth } from "@/contexts/AuthContext";
-import { Badge, Card } from "@/components/ui";
+import { Badge, Card, PageHeader } from "@/components/ui";
 import UserAvatar from "@/components/UserAvatar";
 import StudentPicker from "@/components/StudentPicker";
 import PostLessonModal from "@/components/PostLessonModal";
@@ -132,7 +132,7 @@ function LessonMaterials({
 
       <div className="space-y-2">
         {materials.map((m) => (
-          <div key={m.id} className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 transition-all hover:border-slate-200">
+          <div key={m.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-2.5 transition-all hover:border-slate-200">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
                 <p className="text-xs font-bold text-slate-800">{m.title}</p>
@@ -148,7 +148,7 @@ function LessonMaterials({
                       href={formatExternalUrl(m.driveLink)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
+                      className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
                     >
                       <ExternalLink size={12} /> Google Drive Linki
                     </a>
@@ -157,7 +157,7 @@ function LessonMaterials({
                   {m.files.length > 0 && (
                     <button
                       onClick={() => setViewing(m)}
-                      className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                      className="inline-flex items-center gap-1 rounded-xl bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
                     >
                       <Paperclip size={12} /> {m.files.length} Dosya (Görüntüle / İndir)
                     </button>
@@ -216,20 +216,20 @@ function LessonMaterials({
       )}
 
       {isTeacher && showForm && (
-        <div className="mt-2.5 space-y-2 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3">
+        <div className="mt-2.5 space-y-2 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-3">
           <input
             type="text"
             placeholder="Başlık (örn. 1. Dereceden Denklemler & Ödevler)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium outline-none focus:border-indigo-400"
+            className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium outline-none focus:border-indigo-400"
           />
           <textarea
             rows={3}
             placeholder="Derste neler yapıldı? (İşlenen konular, çözülen örnekler, dersteki notlar ve ödev yönergeleri...)"
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400"
+            className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-indigo-400"
           />
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-slate-400">
@@ -240,20 +240,20 @@ function LessonMaterials({
               placeholder="Google Drive / Dosya Linki (https://drive.google.com/...)"
               value={driveLink}
               onChange={(e) => setDriveLink(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white pl-7 pr-2.5 py-1.5 text-xs outline-none focus:border-indigo-400"
+              className="w-full rounded-xl border border-slate-200 bg-white pl-7 pr-2.5 py-1.5 text-xs outline-none focus:border-indigo-400"
             />
           </div>
           <div>
-            <label className="text-[10px] font-semibold text-slate-500">PDF veya Görsel Yükle (İsteğe bağlı)</label>
+            <label className="text-[11px] font-semibold text-slate-500">PDF veya Görsel Yükle (İsteğe bağlı)</label>
             <input
               ref={fileRef}
               type="file"
               accept="image/*,application/pdf"
               multiple
               onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 5))}
-              className="mt-1 w-full text-xs text-slate-500 file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-white hover:file:bg-indigo-700"
+              className="mt-1 w-full text-xs text-slate-500 file:mr-2 file:rounded-xl file:border-0 file:bg-indigo-600 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-white hover:file:bg-indigo-700"
             />
-            <p className="mt-1 text-[10px] text-slate-400">
+            <p className="mt-1 text-[11px] text-slate-400">
               Görseller otomatik sıkıştırılır, PDF ~700KB. Büyük dosyalar için Google Drive linkini kullanabilirsiniz.
             </p>
           </div>
@@ -262,14 +262,14 @@ function LessonMaterials({
             <button
               onClick={handleSave}
               disabled={busy}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-indigo-600 py-2 text-xs font-semibold text-white disabled:opacity-50 hover:bg-indigo-700"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 py-2 text-xs font-semibold text-white disabled:opacity-50 hover:bg-indigo-700"
             >
               {busy && <Loader2 size={13} className="animate-spin" />}
               Kaydet ve Veliye Yansıt
             </button>
             <button
               onClick={() => setShowForm(false)}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-50"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-50"
             >
               Vazgeç
             </button>
@@ -280,11 +280,11 @@ function LessonMaterials({
       {/* İçerik ve Dosya Görüntüleme / İndirme Modalı */}
       {viewing && (
         <div
-          className="fixed inset-0 z-50 overflow-y-auto bg-black/80 p-4 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex animate-fade-in items-end justify-center bg-slate-950/60 backdrop-blur-sm sm:items-center sm:p-4"
           onClick={() => setViewing(null)}
         >
           <div
-            className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-lg animate-sheet-up rounded-t-[28px] bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-5 shadow-float max-h-[92dvh] overflow-y-auto sm:animate-fade-up sm:rounded-[28px]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -296,7 +296,7 @@ function LessonMaterials({
               </div>
               <button
                 onClick={() => setViewing(null)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"
+                className="rounded-xl p-1 text-slate-400 hover:bg-slate-100"
                 aria-label="Kapat"
               >
                 <X size={20} />
@@ -304,7 +304,7 @@ function LessonMaterials({
             </div>
 
             {viewing.description && (
-              <div className="mt-3 rounded-xl bg-slate-50 p-3">
+              <div className="mt-3 rounded-2xl bg-slate-50 p-3">
                 <p className="text-[11px] font-semibold text-slate-400 uppercase">Derste Yapılanlar</p>
                 <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-slate-700">
                   {viewing.description}
@@ -318,13 +318,13 @@ function LessonMaterials({
                   href={formatExternalUrl(viewing.driveLink)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"
+                  className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"
                 >
                   <span className="flex items-center gap-2">
                     <ExternalLink size={16} className="text-emerald-600" />
                     Google Drive / Harici Dokümanı Aç
                   </span>
-                  <span className="text-[10px] text-emerald-600 underline">Sekmede Aç ↗</span>
+                  <span className="text-[11px] text-emerald-600 underline">Sekmede Aç ↗</span>
                 </a>
               </div>
             )}
@@ -336,19 +336,19 @@ function LessonMaterials({
               <div className="space-y-3">
                 {viewing.files.map((f, i) =>
                   f.kind === "image" ? (
-                    <div key={i} className="rounded-xl border border-slate-200 p-2 bg-slate-50">
+                    <div key={i} className="rounded-2xl border border-slate-200 p-2 bg-slate-50">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={f.dataUrl}
                         alt={f.name}
-                        className="w-full max-h-80 object-contain rounded-lg bg-black/5"
+                        className="w-full max-h-80 object-contain rounded-xl bg-black/5"
                       />
                       <div className="mt-2 flex items-center justify-between px-1">
                         <span className="text-xs font-medium text-slate-700 truncate max-w-[250px]">{f.name}</span>
                         <a
                           href={f.dataUrl}
                           download={f.name}
-                          className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors"
+                          className="inline-flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors"
                         >
                           <Download size={13} /> İndir
                         </a>
@@ -357,7 +357,7 @@ function LessonMaterials({
                   ) : (
                     <div
                       key={i}
-                      className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-medium text-slate-800"
+                      className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs font-medium text-slate-800"
                     >
                       <span className="flex items-center gap-2 truncate max-w-[250px]">
                         <FileText size={18} className="text-rose-500 shrink-0" />
@@ -366,7 +366,7 @@ function LessonMaterials({
                       <a
                         href={f.dataUrl}
                         download={f.name}
-                        className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors shrink-0"
+                        className="inline-flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors shrink-0"
                       >
                         <Download size={13} /> PDF İndir
                       </a>
@@ -669,34 +669,30 @@ export default function CalendarPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">Ders Takvimi</h1>
-          <p className="text-xs text-slate-500">
-            {isTeacher ? "Haftalık ders planı ve öğretmen ajandası" : "Dersleriniz ve çalışma takviminiz"}
-          </p>
+      <PageHeader
+        title="Takvim"
+        subtitle={isTeacher ? "Haftalık ders planı ve ajandanız" : "Dersleriniz ve çalışma takviminiz"}
+      />
+      {isTeacher && (
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setShowForm((v) => !v)}
+            className="flex items-center justify-center gap-1.5 rounded-2xl bg-indigo-600 py-3 text-sm font-bold text-white shadow-md shadow-indigo-600/25"
+          >
+            <Plus size={17} /> Ders Ekle
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center justify-center gap-1.5 rounded-2xl bg-indigo-50 py-3 text-sm font-bold text-indigo-700 dark:text-indigo-200"
+          >
+            <Sparkles size={16} /> İçe Aktar
+          </button>
         </div>
-        {isTeacher && (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowImportModal(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 transition-colors shadow-xs"
-            >
-              <Sparkles size={14} /> Program İçe Aktar
-            </button>
-            <button
-              onClick={() => setShowForm((v) => !v)}
-              className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700"
-            >
-              <Plus size={15} /> Ders Ekle
-            </button>
-          </div>
-        )}
-      </div>
+      )}
 
       {isTeacher && (
-        <div className="mt-3 flex items-center justify-between rounded-xl bg-indigo-50/80 px-3.5 py-2 text-xs font-semibold text-indigo-950 dark:bg-indigo-950/50 dark:text-indigo-200">
+        <div className="mt-3 flex items-center justify-between rounded-2xl bg-indigo-50/80 px-3.5 py-2 text-xs font-semibold text-indigo-950 dark:bg-indigo-950/50 dark:text-indigo-200">
           <span className="flex items-center gap-1.5">
             <CalendarDays size={14} className="text-indigo-600 dark:text-indigo-400" />
             Bu Hafta: <strong>{weekStats.count} ders</strong> ({weekStats.hours} saat)
@@ -710,13 +706,13 @@ export default function CalendarPage() {
       )}
 
       {/* Görünüm Seçici (Akış vs Çizelge) */}
-      <div className="mt-3.5 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-[#1e2a40]">
+      <div className="mt-3.5 grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 dark:bg-[#241f33]">
         <button
           type="button"
           onClick={() => setCalendarView("flow")}
-          className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold transition ${
+          className={`flex items-center justify-center gap-1.5 rounded-xl py-1.5 text-xs font-semibold transition ${
             calendarView === "flow"
-              ? "bg-white text-indigo-600 shadow-xs dark:bg-[#0f1a2c] dark:text-indigo-400"
+              ? "bg-white text-indigo-600 shadow-xs dark:bg-[#14111d] dark:text-indigo-400"
               : "text-slate-500"
           }`}
         >
@@ -725,9 +721,9 @@ export default function CalendarPage() {
         <button
           type="button"
           onClick={() => setCalendarView("schedule")}
-          className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold transition ${
+          className={`flex items-center justify-center gap-1.5 rounded-xl py-1.5 text-xs font-semibold transition ${
             calendarView === "schedule"
-              ? "bg-white text-indigo-600 shadow-xs dark:bg-[#0f1a2c] dark:text-indigo-400"
+              ? "bg-white text-indigo-600 shadow-xs dark:bg-[#14111d] dark:text-indigo-400"
               : "text-slate-500"
           }`}
         >
@@ -780,7 +776,7 @@ export default function CalendarPage() {
             <select
               value={formStudent}
               onChange={(e) => handleStudentSelect(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+              className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
             >
               <option value="">Öğrenci seçin</option>
               {students.map((s) => (
@@ -797,7 +793,7 @@ export default function CalendarPage() {
               type="datetime-local"
               value={formDate}
               onChange={(e) => setFormDate(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+              className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
             />
           </label>
 
@@ -811,7 +807,7 @@ export default function CalendarPage() {
                 placeholder="60"
                 value={formDuration}
                 onChange={(e) => setFormDuration(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
               />
             </label>
             <label className="text-xs font-medium text-slate-500">
@@ -822,7 +818,7 @@ export default function CalendarPage() {
                 placeholder="0"
                 value={formPrice}
                 onChange={(e) => setFormPrice(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
               />
             </label>
           </div>
@@ -839,7 +835,7 @@ export default function CalendarPage() {
                     setFormTopic("");
                     setCustomTopic("");
                   }}
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
                 >
                   {studentLessonSubjects.map((sub) => (
                     <option key={sub} value={sub}>
@@ -854,7 +850,7 @@ export default function CalendarPage() {
                   placeholder="Ders adı (örn. Matematik)"
                   value={formSubject}
                   onChange={(e) => setFormSubject(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
                 />
               )}
             </label>
@@ -866,7 +862,7 @@ export default function CalendarPage() {
                 <select
                   value={formTopic}
                   onChange={(e) => setFormTopic(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
                 >
                   <option value="">Konu belirtilmedi</option>
                   {lessonTopics.map((t) => (
@@ -882,7 +878,7 @@ export default function CalendarPage() {
                   placeholder="İşlenecek konu"
                   value={formTopic === "__CUSTOM__" ? customTopic : formTopic}
                   onChange={(e) => setFormTopic(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
                 />
               )}
             </label>
@@ -894,7 +890,7 @@ export default function CalendarPage() {
               placeholder="Özel işlenecek konu başlığı girin..."
               value={customTopic}
               onChange={(e) => setCustomTopic(e.target.value)}
-              className="w-full rounded-xl border border-indigo-200 px-3 py-2 text-xs outline-none focus:border-indigo-400"
+              className="w-full rounded-2xl border border-indigo-200 px-3 py-2 text-xs outline-none focus:border-indigo-400"
             />
           )}
 
@@ -903,7 +899,7 @@ export default function CalendarPage() {
             <select
               value={formPayment}
               onChange={(e) => setFormPayment(e.target.value as PaymentStatus)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+              className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
             >
               <option value="UNPAID">Ödeme Bekliyor</option>
               <option value="PAID">Ödendi</option>
@@ -912,7 +908,7 @@ export default function CalendarPage() {
 
           <button
             onClick={handleAddLesson}
-            className="w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
+            className="w-full rounded-2xl bg-indigo-600 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
           >
             Dersi Kaydet
           </button>
@@ -922,7 +918,7 @@ export default function CalendarPage() {
       <div className="mt-4 flex items-center justify-between">
         <button
           onClick={() => setWeekStart(addDays(weekStart, -7))}
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+          className="rounded-xl p-2 text-slate-500 hover:bg-slate-100"
           aria-label="Önceki hafta"
         >
           <ChevronLeft size={20} />
@@ -937,7 +933,7 @@ export default function CalendarPage() {
         </p>
         <button
           onClick={() => setWeekStart(addDays(weekStart, 7))}
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+          className="rounded-xl p-2 text-slate-500 hover:bg-slate-100"
           aria-label="Sonraki hafta"
         >
           <ChevronRight size={20} />
@@ -956,7 +952,7 @@ export default function CalendarPage() {
             return (
               <div
                 key={day.toISOString()}
-                className={`rounded-2xl border bg-white p-3.5 shadow-xs transition-all dark:bg-[#151f31] ${
+                className={`rounded-2xl border bg-white p-3.5 shadow-xs transition-all dark:bg-[#1a1726] ${
                   isToday
                     ? "border-indigo-300 ring-2 ring-indigo-100 dark:border-indigo-800 dark:ring-indigo-950/50"
                     : "border-slate-100 dark:border-slate-800"
@@ -965,7 +961,7 @@ export default function CalendarPage() {
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-slate-800">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`flex h-7 w-7 items-center justify-center rounded-xl text-xs font-bold ${
+                      className={`flex h-7 w-7 items-center justify-center rounded-2xl text-xs font-bold ${
                         isToday
                           ? "bg-indigo-600 text-white"
                           : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
@@ -1008,7 +1004,7 @@ export default function CalendarPage() {
                   <div className="mt-2.5 space-y-2">
                     {/* Günün Çalışma Programı / Ödevleri */}
                     {dayPlans.length > 0 && (
-                      <div className="rounded-xl border border-amber-200/70 bg-amber-50/40 p-2.5 dark:border-amber-900/40 dark:bg-amber-950/20">
+                      <div className="rounded-2xl border border-amber-200/70 bg-amber-50/40 p-2.5 dark:border-amber-900/40 dark:bg-amber-950/20">
                         <p className="text-[11px] font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5 mb-1.5">
                           <span>🎯</span> Günün Çalışma Programı ({dayPlans.length})
                         </p>
@@ -1016,14 +1012,14 @@ export default function CalendarPage() {
                           {dayPlans.map((dp) => (
                             <div
                               key={dp.id}
-                              className="flex items-center justify-between gap-2 rounded-lg bg-white/90 p-2 text-xs dark:bg-[#151f31]/90 shadow-2xs"
+                              className="flex items-center justify-between gap-2 rounded-xl bg-white/90 p-2 text-xs dark:bg-[#1a1726]/90 shadow-2xs"
                             >
                               <div className="min-w-0 flex-1">
                                 <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
                                   {dp.title}
                                 </p>
                                 {dp.targetQuestions > 0 && (
-                                  <p className="text-[10px] text-slate-500">
+                                  <p className="text-[11px] text-slate-500">
                                     Hedef: {dp.targetQuestions} Soru
                                     {dp.solvedQuestions ? ` • Çözülen: ${dp.solvedQuestions}` : ""}
                                   </p>
@@ -1045,10 +1041,10 @@ export default function CalendarPage() {
                       return (
                         <div
                           key={l.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs dark:border-slate-800/80 dark:bg-[#0f1a2c]"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-2xl border border-slate-100 bg-slate-50/70 p-3 text-xs dark:border-slate-800/80 dark:bg-[#14111d]"
                         >
                           <div className="flex items-start gap-2.5">
-                            <div className="flex flex-col items-center justify-center rounded-lg bg-indigo-100 px-2 py-1 text-indigo-800 font-bold text-[11px] shrink-0 dark:bg-indigo-950 dark:text-indigo-300">
+                            <div className="flex flex-col items-center justify-center rounded-xl bg-indigo-100 px-2 py-1 text-indigo-800 font-bold text-[11px] shrink-0 dark:bg-indigo-950 dark:text-indigo-300">
                               <span className="leading-tight">{formatTime(l.startTime.toDate())}</span>
                               <span className="text-[9px] text-slate-500 font-normal leading-tight">
                                 {formatTime(endTime)}
@@ -1062,7 +1058,7 @@ export default function CalendarPage() {
                                   {isTeacher ? l.studentName : profile?.displayName}
                                 </span>
                                 {stProfile?.grade && (
-                                  <span className="text-[10px] text-slate-400">
+                                  <span className="text-[11px] text-slate-400">
                                     • {stProfile.grade}. Sınıf
                                   </span>
                                 )}
@@ -1071,7 +1067,7 @@ export default function CalendarPage() {
                                 {l.subject}
                               </p>
                               {l.price > 0 && (
-                                <p className="text-[10px] text-slate-400">₺{l.price}</p>
+                                <p className="text-[11px] text-slate-400">₺{l.price}</p>
                               )}
                             </div>
                           </div>
@@ -1087,7 +1083,7 @@ export default function CalendarPage() {
                               <button
                                 type="button"
                                 onClick={() => setPostLessonFor(l)}
-                                className="rounded-lg bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-indigo-700 shadow-xs"
+                                className="rounded-xl bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-indigo-700 shadow-xs"
                               >
                                 Ders Sonu
                               </button>
@@ -1122,7 +1118,7 @@ export default function CalendarPage() {
                     {isToday && " (Bugün)"}
                   </p>
                   {dayPlans.length > 0 && (
-                    <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                    <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
                       {dayPlans.length} Program Görevi
                     </span>
                   )}
@@ -1130,21 +1126,21 @@ export default function CalendarPage() {
 
                 {/* Günün Program Görevleri (Flow görünümünde) */}
                 {dayPlans.length > 0 && (
-                  <div className="mb-2 space-y-1.5 rounded-xl border border-amber-200/70 bg-amber-50/40 p-2.5 dark:border-amber-900/40 dark:bg-amber-950/20">
+                  <div className="mb-2 space-y-1.5 rounded-2xl border border-amber-200/70 bg-amber-50/40 p-2.5 dark:border-amber-900/40 dark:bg-amber-950/20">
                     <p className="text-[11px] font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5 mb-1">
                       <span>🎯</span> Çalışma Programı
                     </p>
                     {dayPlans.map((dp) => (
                       <div
                         key={dp.id}
-                        className="flex items-center justify-between gap-2 rounded-lg bg-white/90 p-2 text-xs dark:bg-[#151f31]/90 shadow-2xs"
+                        className="flex items-center justify-between gap-2 rounded-xl bg-white/90 p-2 text-xs dark:bg-[#1a1726]/90 shadow-2xs"
                       >
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
                             {dp.title}
                           </p>
                           {dp.targetQuestions > 0 && (
-                            <p className="text-[10px] text-slate-500">
+                            <p className="text-[11px] text-slate-500">
                               Hedef: {dp.targetQuestions} Soru
                               {dp.solvedQuestions ? ` • Çözülen: ${dp.solvedQuestions}` : ""}
                             </p>
@@ -1159,7 +1155,7 @@ export default function CalendarPage() {
                 )}
 
                 {dayLessons.length === 0 && dayPlans.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-slate-200 py-3 text-center text-xs text-slate-300 dark:border-slate-800 dark:text-slate-600">
+                  <div className="rounded-2xl border border-dashed border-slate-200 py-3 text-center text-xs text-slate-300 dark:border-slate-800 dark:text-slate-600">
                     Ders veya görev yok
                   </div>
                 ) : (
@@ -1202,7 +1198,7 @@ export default function CalendarPage() {
                       </div>
 
                       {lesson.parentNote && (
-                        <p className="mt-2 rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
+                        <p className="mt-2 rounded-xl bg-slate-50 p-2 text-xs text-slate-600">
                           <span className="font-semibold">Veli notu: </span>
                           {lesson.parentNote}
                         </p>
@@ -1213,13 +1209,13 @@ export default function CalendarPage() {
                         <div className="mt-3 flex gap-2">
                           <button
                             onClick={() => handleStatus(lesson, "CONFIRMED")}
-                            className="flex-1 rounded-lg bg-indigo-600 py-2 text-xs font-semibold text-white"
+                            className="flex-1 rounded-xl bg-indigo-600 py-2 text-xs font-semibold text-white"
                           >
                             Onayla
                           </button>
                           <button
                             onClick={() => setProposeFor(lesson.id)}
-                            className="flex-1 rounded-lg border border-slate-200 py-2 text-xs font-semibold text-slate-600"
+                            className="flex-1 rounded-xl border border-slate-200 py-2 text-xs font-semibold text-slate-600"
                           >
                             Saat Teklif Et
                           </button>
@@ -1231,11 +1227,11 @@ export default function CalendarPage() {
                             type="datetime-local"
                             value={proposeValue}
                             onChange={(e) => setProposeValue(e.target.value)}
-                            className="flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-xs outline-none focus:border-indigo-400"
+                            className="flex-1 rounded-xl border border-slate-200 px-2 py-1.5 text-xs outline-none focus:border-indigo-400"
                           />
                           <button
                             onClick={() => handlePropose(lesson)}
-                            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white"
+                            className="rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white"
                           >
                             Gönder
                           </button>
@@ -1248,7 +1244,7 @@ export default function CalendarPage() {
                           {lesson.status === "PENDING" && (
                             <button
                               onClick={() => handleStatus(lesson, "CONFIRMED")}
-                              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white"
+                              className="rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white"
                             >
                               Onayla
                             </button>
@@ -1256,7 +1252,7 @@ export default function CalendarPage() {
                           {lesson.proposedTime && (
                             <button
                               onClick={() => handleAcceptProposal(lesson)}
-                              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white"
+                              className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white"
                             >
                               Teklifi Kabul Et
                             </button>
@@ -1265,13 +1261,13 @@ export default function CalendarPage() {
                             <>
                               <button
                                 onClick={() => setPostLessonFor(lesson)}
-                                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 flex items-center gap-1 shadow-xs transition-colors"
+                                className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 flex items-center gap-1 shadow-xs transition-colors"
                               >
                                 <CheckCircle2 size={13} /> Dersi Tamamla & Ders Sonu
                               </button>
                               <button
                                 onClick={() => handleStatus(lesson, "CANCELLED")}
-                                className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                                className="rounded-xl border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
                               >
                                 İptal
                               </button>
@@ -1280,7 +1276,7 @@ export default function CalendarPage() {
                           {lesson.status === "COMPLETED" && (
                             <button
                               onClick={() => setPostLessonFor(lesson)}
-                              className="rounded-lg bg-indigo-50 border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 flex items-center gap-1 transition-colors"
+                              className="rounded-xl bg-indigo-50 border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 flex items-center gap-1 transition-colors"
                             >
                               <FileText size={13} /> Ders Sonu Raporu
                             </button>
@@ -1288,7 +1284,7 @@ export default function CalendarPage() {
                           {lesson.status === "COMPLETED" && lesson.paymentStatus === "UNPAID" && (
                             <button
                               onClick={() => handlePayment(lesson, "PAID")}
-                              className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-600 hover:bg-emerald-50"
+                              className="rounded-xl border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-600 hover:bg-emerald-50"
                             >
                               Ödendi İşaretle
                             </button>
@@ -1298,7 +1294,7 @@ export default function CalendarPage() {
                               setNoteFor(lesson.id);
                               setNoteText(lesson.parentNote ?? "");
                             }}
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                            className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
                           >
                             Veli Notu
                           </button>
@@ -1311,11 +1307,11 @@ export default function CalendarPage() {
                             placeholder="Veliye gösterilecek ders sonu notu..."
                             value={noteText}
                             onChange={(e) => setNoteText(e.target.value)}
-                            className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-indigo-400"
+                            className="w-full rounded-xl border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-indigo-400"
                           />
                           <button
                             onClick={() => handleSaveNote(lesson)}
-                            className="w-full rounded-lg bg-indigo-600 py-2 text-xs font-semibold text-white"
+                            className="w-full rounded-xl bg-indigo-600 py-2 text-xs font-semibold text-white"
                           >
                             Notu Kaydet
                           </button>

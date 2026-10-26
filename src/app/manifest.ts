@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Özel ders takip, ödev yönetimi ve veli bilgilendirme platformu",
     start_url: "/",
     display: "standalone",
-    background_color: "#f8fafc",
-    theme_color: "#4f46e5",
+    background_color: "#f6f5fa",
+    theme_color: "#6d3fe6",
     icons: [
       {
         src: "/icons/icon-192.png",

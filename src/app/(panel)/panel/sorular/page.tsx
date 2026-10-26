@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { Badge, Card } from "@/components/ui";
+import { Badge, Card, PageHeader } from "@/components/ui";
 import StudentPicker from "@/components/StudentPicker";
 import UserAvatar from "@/components/UserAvatar";
 import {
@@ -234,15 +234,17 @@ export default function QuestionsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold">Soru Kumbarası</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        {isTeacher
-          ? "Öğrencilerinizin takıldığı soruları inceleyin, fotoğraf veya açıklamalı çözüm yükleyin."
-          : "Çözemediğin sorunun fotoğrafını çek, öğretmenin çözüm yüklesin veya derste birlikte çözün."}
-      </p>
+      <PageHeader
+        title="Soru Kumbarası"
+        subtitle={
+          isTeacher
+            ? "Öğrencilerinizin takıldığı soruları inceleyin, çözüm yükleyin."
+            : "Çözemediğin sorunun fotoğrafını çek, öğretmenin çözsün."
+        }
+      />
 
       {isTeacher && (
-        <div className="mt-4">
+        <div>
           <StudentPicker
             students={students}
             value={selectedStudent}
@@ -263,7 +265,7 @@ export default function QuestionsPage() {
             </p>
             <Link
               href="/panel/ayarlar"
-              className="mt-2 inline-block rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-amber-700"
+              className="mt-2 inline-block rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-amber-700"
             >
               Ayarlara Git & Kod Ekle
             </Link>
@@ -284,7 +286,7 @@ export default function QuestionsPage() {
           {!preview ? (
             <button
               onClick={() => fileRef.current?.click()}
-              className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-200 py-8 text-slate-400"
+              className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 py-8 text-slate-400"
             >
               <Camera size={28} />
               <span className="text-sm font-medium">Fotoğraf Çek / Seç</span>
@@ -294,7 +296,7 @@ export default function QuestionsPage() {
             <img
               src={preview}
               alt="Soru önizleme"
-              className="max-h-64 w-full rounded-xl object-contain"
+              className="max-h-64 w-full rounded-2xl object-contain"
             />
           )}
           {file && (
@@ -309,7 +311,7 @@ export default function QuestionsPage() {
                       setTopic("");
                       setCustomTopic("");
                     }}
-                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-indigo-400"
+                    className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-indigo-400"
                   >
                     {studentSubjects.map((s: string) => (
                       <option key={s} value={s}>
@@ -324,7 +326,7 @@ export default function QuestionsPage() {
                   <select
                     value={topic || availableTopics[0]}
                     onChange={(e) => setTopic(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-indigo-400"
+                    className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-indigo-400"
                   >
                     {availableTopics.map((t: string) => (
                       <option key={t} value={t}>
@@ -342,7 +344,7 @@ export default function QuestionsPage() {
                   placeholder="Özel konu başlığı girin..."
                   value={customTopic}
                   onChange={(e) => setCustomTopic(e.target.value)}
-                  className="w-full rounded-xl border border-indigo-200 px-3 py-2 text-xs outline-none focus:border-indigo-400"
+                  className="w-full rounded-2xl border border-indigo-200 px-3 py-2 text-xs outline-none focus:border-indigo-400"
                 />
               )}
               <input
@@ -350,11 +352,11 @@ export default function QuestionsPage() {
                 placeholder="Kısa not (isteğe bağlı)"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
+                className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400"
               />
 
               {uploadError && (
-                <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs font-medium text-rose-700">
+                <div className="flex items-center gap-2 rounded-2xl bg-rose-50 p-3 text-xs font-medium text-rose-700">
                   <AlertCircle size={16} className="shrink-0" />
                   <span>{uploadError}</span>
                 </div>
@@ -363,7 +365,7 @@ export default function QuestionsPage() {
               <button
                 onClick={handleUpload}
                 disabled={uploading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-3 text-sm font-semibold text-white disabled:opacity-50"
               >
                 {uploading && <Loader2 size={16} className="animate-spin" />}
                 {uploading ? "Yükleniyor..." : "Kumbaraya Ekle"}
@@ -413,7 +415,7 @@ export default function QuestionsPage() {
                       subtitle: item.note || undefined,
                     })
                   }
-                  className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800"
+                  className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800"
                   aria-label="Soruyu büyüt"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -446,7 +448,7 @@ export default function QuestionsPage() {
                             {studentName}
                           </span>
                           {studentGrade && (
-                            <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                            <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
                               {studentGrade}
                             </span>
                           )}
@@ -478,14 +480,14 @@ export default function QuestionsPage() {
 
                   {/* Öğretmen Çözüm Kartı (Varsa) */}
                   {hasSolution && (
-                    <div className="mt-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 dark:border-emerald-900/50 dark:bg-emerald-950/30">
+                    <div className="mt-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3 dark:border-emerald-900/50 dark:bg-emerald-950/30">
                       <div className="flex items-center justify-between gap-2">
                         <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300">
                           <CheckCircle2 size={15} className="text-emerald-600 dark:text-emerald-400" />
                           Öğretmenin Çözümü
                         </span>
                         {item.solvedAt && (
-                          <span className="text-[10px] text-emerald-700/80 dark:text-emerald-400/80">
+                          <span className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80">
                             {formatDateTime(item.solvedAt.toDate())}
                           </span>
                         )}
@@ -508,7 +510,7 @@ export default function QuestionsPage() {
                                 subtitle: item.solutionText || undefined,
                               })
                             }
-                            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-lg border border-emerald-300/80 bg-white p-1 text-xs font-semibold text-emerald-700 shadow-xs hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300"
+                            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border border-emerald-300/80 bg-white p-1 text-xs font-semibold text-emerald-700 shadow-xs hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
@@ -533,7 +535,7 @@ export default function QuestionsPage() {
                         <button
                           type="button"
                           onClick={() => openSolutionModal(item)}
-                          className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 transition-colors"
+                          className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 transition-colors"
                         >
                           {hasSolution ? <Edit3 size={14} /> : <Sparkles size={14} />}
                           {hasSolution ? "Çözümü Düzenle" : "Çözüm Yükle"}
@@ -546,7 +548,7 @@ export default function QuestionsPage() {
                               ? resolveQuestion(item.id)
                               : reopenQuestion(item.id)
                           }
-                          className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold ${
+                          className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold ${
                             item.status === "OPEN"
                               ? "bg-emerald-600 text-white hover:bg-emerald-700"
                               : "border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400"
@@ -567,7 +569,7 @@ export default function QuestionsPage() {
                           <button
                             type="button"
                             onClick={() => handleDeleteSolution(item.id)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors ml-auto sm:ml-0"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors ml-auto sm:ml-0"
                             title="Çözümü Sil"
                           >
                             <Trash2 size={15} />
@@ -598,8 +600,8 @@ export default function QuestionsPage() {
 
       {/* Öğretmen Çözüm Yükleme Modalı */}
       {solutionModalQuestion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl dark:bg-slate-900 border border-slate-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex animate-fade-in items-end justify-center bg-slate-950/60 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="w-full max-w-lg animate-sheet-up rounded-t-[28px] bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-5 shadow-float max-h-[92dvh] overflow-y-auto sm:animate-fade-up sm:rounded-[28px]">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Sparkles size={18} className="text-indigo-600 dark:text-indigo-400" />
@@ -610,19 +612,19 @@ export default function QuestionsPage() {
               <button
                 type="button"
                 onClick={() => setSolutionModalQuestion(null)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+                className="rounded-xl p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
               >
                 <X size={20} />
               </button>
             </div>
 
             {/* Referans Soru Özeti */}
-            <div className="mt-3 flex items-center gap-3 rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+            <div className="mt-3 flex items-center gap-3 rounded-2xl bg-slate-50 p-2.5 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={solutionModalQuestion.imageData}
                 alt="Soru önizleme"
-                className="h-14 w-14 rounded-lg object-cover shrink-0 cursor-pointer"
+                className="h-14 w-14 rounded-xl object-cover shrink-0 cursor-pointer"
                 onClick={() =>
                   setViewingImage({
                     src: solutionModalQuestion.imageData,
@@ -663,18 +665,18 @@ export default function QuestionsPage() {
                   Çözüm Fotoğrafı (Opsiyonel / Tavsiye Edilen)
                 </label>
                 {solutionPreview ? (
-                  <div className="relative rounded-xl border border-slate-200 p-2 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                  <div className="relative rounded-2xl border border-slate-200 p-2 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={solutionPreview}
                       alt="Çözüm önizleme"
-                      className="max-h-56 w-full rounded-lg object-contain bg-black/5"
+                      className="max-h-56 w-full rounded-xl object-contain bg-black/5"
                     />
                     <div className="mt-2 flex gap-2 justify-end">
                       <button
                         type="button"
                         onClick={() => solutionFileInputRef.current?.click()}
-                        className="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
+                        className="rounded-xl bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
                       >
                         Fotoğrafı Değiştir
                       </button>
@@ -685,7 +687,7 @@ export default function QuestionsPage() {
                           setSolutionPreview("");
                           if (solutionFileInputRef.current) solutionFileInputRef.current.value = "";
                         }}
-                        className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-400"
+                        className="rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-400"
                       >
                         Kaldır
                       </button>
@@ -695,7 +697,7 @@ export default function QuestionsPage() {
                   <button
                     type="button"
                     onClick={() => solutionFileInputRef.current?.click()}
-                    className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/40 py-6 text-indigo-600 hover:bg-indigo-50 transition-colors dark:border-indigo-900/60 dark:bg-indigo-950/20 dark:text-indigo-400"
+                    className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/40 py-6 text-indigo-600 hover:bg-indigo-50 transition-colors dark:border-indigo-900/60 dark:bg-indigo-950/20 dark:text-indigo-400"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300">
                       <Camera size={20} />
@@ -714,12 +716,12 @@ export default function QuestionsPage() {
                   placeholder="Çözümün adımlarını, püf noktasını veya doğru cevabı buraya yazabilirsiniz..."
                   value={solutionText}
                   onChange={(e) => setSolutionText(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-3 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded-2xl border border-slate-200 p-3 text-xs outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 />
               </div>
 
               {solutionError && (
-                <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-400">
+                <div className="flex items-center gap-2 rounded-2xl bg-rose-50 p-3 text-xs font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-400">
                   <AlertCircle size={16} className="shrink-0" />
                   <span>{solutionError}</span>
                 </div>
@@ -730,7 +732,7 @@ export default function QuestionsPage() {
               <button
                 type="button"
                 onClick={() => setSolutionModalQuestion(null)}
-                className="flex-1 rounded-xl border border-slate-200 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300"
+                className="flex-1 rounded-2xl border border-slate-200 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300"
               >
                 Vazgeç
               </button>
@@ -738,7 +740,7 @@ export default function QuestionsPage() {
                 type="button"
                 onClick={handleSaveSolution}
                 disabled={savingSolution}
-                className="flex-[2] flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 disabled:opacity-50 transition-colors"
               >
                 {savingSolution ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -761,7 +763,7 @@ export default function QuestionsPage() {
           <div className="flex items-center justify-between text-white pb-2">
             <span className="font-semibold text-sm truncate pr-4">{viewingImage.title}</span>
             <button
-              className="rounded-lg p-2 text-white hover:bg-white/10"
+              className="rounded-xl p-2 text-white hover:bg-white/10"
               onClick={() => setViewingImage(null)}
               aria-label="Kapat"
             >
@@ -773,11 +775,11 @@ export default function QuestionsPage() {
             <img
               src={viewingImage.src}
               alt={viewingImage.title}
-              className="max-h-full max-w-full rounded-lg object-contain"
+              className="max-h-full max-w-full rounded-xl object-contain"
             />
           </div>
           {viewingImage.subtitle && (
-            <p className="py-3 text-center text-sm text-white/80 bg-black/40 rounded-lg mt-2 px-4 max-w-2xl mx-auto">
+            <p className="py-3 text-center text-sm text-white/80 bg-black/40 rounded-xl mt-2 px-4 max-w-2xl mx-auto">
               {viewingImage.subtitle}
             </p>
           )}

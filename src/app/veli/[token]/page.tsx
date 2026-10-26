@@ -95,7 +95,7 @@ export default function ParentPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-slate-50">
+      <div className="flex min-h-dvh items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
       </div>
     );
@@ -103,7 +103,7 @@ export default function ParentPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-slate-50 px-6 text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 px-6 text-center">
         <GraduationCap className="text-slate-300" size={48} />
         <h1 className="text-lg font-bold">Bir Hata Oluştu</h1>
         <p className="text-sm text-slate-500">
@@ -115,7 +115,7 @@ export default function ParentPage() {
 
   if (notFound || !view) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-slate-50 px-6 text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 px-6 text-center">
         <GraduationCap className="text-slate-300" size={48} />
         <h1 className="text-lg font-bold">Bağlantı Geçersiz</h1>
         <p className="text-sm text-slate-500">
@@ -130,36 +130,38 @@ export default function ParentPage() {
     s === "PAID" ? ("green" as const) : s === "UNPAID" ? ("red" as const) : ("slate" as const);
 
   return (
-    <div className="mx-auto min-h-dvh max-w-lg bg-slate-50 px-4 py-6">
-      <header className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
+    <div className="mx-auto min-h-dvh max-w-2xl px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
+      <header className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-indigo-600 via-indigo-600 to-fuchsia-600 p-5 text-white shadow-float">
+        <div className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/10" />
+        <p className="relative text-xs font-semibold uppercase tracking-wider text-white/70">
+          Veli bilgilendirme
+        </p>
+        <div className="relative mt-3 flex items-center gap-3">
           <UserAvatar
             icon={view.avatarIcon}
             role="STUDENT"
             name={view.studentName}
-            size="md"
+            size="lg"
+            className="border-white/20! bg-white/15!"
           />
-          <div>
-            <p className="text-xs text-slate-500">Veli Bilgilendirme Ekranı</p>
-            <h1 className="text-lg font-bold text-slate-800">{view.studentName}</h1>
-            <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-              {view.grade && (
-                <span className="font-semibold text-indigo-600">
-                  {getGradeLabel(view.grade)}
+          <div className="min-w-0">
+            <h1 className="truncate text-2xl font-extrabold tracking-tight">{view.studentName}</h1>
+            <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-white/75">
+              {view.grade && <span className="font-semibold text-white">{getGradeLabel(view.grade)}</span>}
+              {view.schoolName && <span>• {view.schoolName}</span>}
+              {view.targetGroup && (
+                <span className="rounded-full bg-white/15 px-2 py-0.5 font-semibold">
+                  {TARGET_GROUP_LABELS[view.targetGroup]}
                 </span>
               )}
-              {view.schoolName && <span>• {view.schoolName}</span>}
             </div>
           </div>
         </div>
-        {view.targetGroup && (
-          <Badge tone="indigo">{TARGET_GROUP_LABELS[view.targetGroup]}</Badge>
-        )}
       </header>
 
       {/* Takip Edilen Özel Dersler */}
       {view.enrolledSubjects && view.enrolledSubjects.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-1.5 rounded-xl bg-indigo-50/60 p-2.5">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 rounded-2xl bg-indigo-50/60 p-2.5">
           <span className="text-[11px] font-semibold text-indigo-700">
             Takip Edilen Dersler:
           </span>
@@ -174,7 +176,7 @@ export default function ParentPage() {
         </div>
       )}
 
-      <div className="mt-5 grid grid-cols-3 gap-3">
+      <div className="mt-4 grid grid-cols-3 gap-2.5">
         <Card className="text-center">
           <p className="text-xl font-bold">{view.monthHours}</p>
           <p className="text-[11px] text-slate-500">Bu Ay Ders Saati</p>
@@ -258,7 +260,7 @@ export default function ParentPage() {
                   <Line
                     type="monotone"
                     dataKey="net"
-                    stroke="#4f46e5"
+                    stroke="#6d3fe6"
                     strokeWidth={2.5}
                     dot={{ r: 3 }}
                   />
@@ -283,7 +285,7 @@ export default function ParentPage() {
                   <XAxis dataKey="day" tick={{ fontSize: 10 }} stroke="#94a3b8" />
                   <YAxis tick={{ fontSize: 10 }} stroke="#94a3b8" allowDecimals={false} />
                   <Tooltip />
-                  <Bar dataKey="soru" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="soru" fill="#6d3fe6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -362,7 +364,7 @@ export default function ParentPage() {
               <Card key={i} className="border-l-4 border-l-indigo-400 py-3">
                 <p className="text-sm text-slate-700">{n.text}</p>
                 {n.date && (
-                  <p className="mt-1 text-[10px] text-slate-400">
+                  <p className="mt-1 text-[11px] text-slate-400">
                     {new Date(n.date).toLocaleDateString("tr-TR", {
                       day: "numeric",
                       month: "long",
@@ -403,7 +405,7 @@ export default function ParentPage() {
                   <div>
                     <p className="text-sm font-bold text-slate-900">{m.title}</p>
                     {m.date && (
-                      <p className="text-[10px] text-slate-400">
+                      <p className="text-[11px] text-slate-400">
                         {new Date(m.date).toLocaleDateString("tr-TR", {
                           day: "numeric",
                           month: "long",
@@ -415,8 +417,8 @@ export default function ParentPage() {
                 </div>
 
                 {m.description && (
-                  <div className="mt-2 rounded-xl bg-slate-50 p-2.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <div className="mt-2 rounded-2xl bg-slate-50 p-2.5">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                       Derste Yapılanlar / İşlenen Konu
                     </p>
                     <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-slate-700">
@@ -431,7 +433,7 @@ export default function ParentPage() {
                       href={m.driveLink.startsWith("http") ? m.driveLink : `https://${m.driveLink}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
                     >
                       <ExternalLink size={13} /> Google Drive / Ders Materyalleri ↗
                     </a>
@@ -440,9 +442,9 @@ export default function ParentPage() {
 
                 {m.files && m.files.length > 0 ? (
                   <div className="mt-2 space-y-1.5 border-t border-slate-100 pt-2">
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase">Ekli Dosyalar:</p>
+                    <p className="text-[11px] font-semibold text-slate-400 uppercase">Ekli Dosyalar:</p>
                     {m.files.map((f, fi) => (
-                      <div key={fi} className="flex items-center justify-between text-xs text-slate-700 rounded-lg bg-slate-50 px-2.5 py-1.5">
+                      <div key={fi} className="flex items-center justify-between text-xs text-slate-700 rounded-xl bg-slate-50 px-2.5 py-1.5">
                         <span className="flex items-center gap-1.5 truncate max-w-[220px]">
                           {f.kind === "pdf" ? <FileText size={14} className="text-rose-500" /> : <ImageIcon size={14} className="text-indigo-500" />}
                           <span className="truncate">{f.name}</span>
@@ -481,18 +483,18 @@ export default function ParentPage() {
                         {t.title}
                       </p>
                       {t.subject && (
-                        <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700">
+                        <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-700">
                           {t.subject}
                         </span>
                       )}
                       {t.topic && (
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">
                           {t.topic}
                         </span>
                       )}
                     </div>
                     {t.dueDate && (
-                      <p className="mt-1 flex items-center gap-1 text-[10px] text-amber-600 font-medium">
+                      <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-600 font-medium">
                         <Clock size={11} /> Son Teslim: {new Date(t.dueDate).toLocaleDateString("tr-TR")}
                       </p>
                     )}
@@ -503,7 +505,7 @@ export default function ParentPage() {
                 </div>
 
                 {t.description && (
-                  <p className="mt-2 whitespace-pre-line rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
+                  <p className="mt-2 whitespace-pre-line rounded-xl bg-slate-50 p-2 text-xs text-slate-600">
                     {t.description}
                   </p>
                 )}
@@ -557,7 +559,7 @@ export default function ParentPage() {
                       {p.targetQuestions > 0 && ` • Hedef: ${p.targetQuestions} soru`}
                     </p>
                     {p.isCompleted && (p.solvedQuestions || p.studentNote) && (
-                      <p className="mt-1.5 rounded-lg bg-emerald-50 p-2 text-xs text-emerald-800">
+                      <p className="mt-1.5 rounded-xl bg-emerald-50 p-2 text-xs text-emerald-800">
                         {p.solvedQuestions ? `${p.solvedQuestions} soru çözüldü. ` : ""}
                         {p.studentNote}
                       </p>

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Badge, Card, SectionTitle } from "@/components/ui";
+import { Badge, Card, PageHeader, SectionTitle } from "@/components/ui";
 import {
   subscribeLessonsForTeacher,
   updateLesson,
@@ -78,21 +78,21 @@ export default function FinancePage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold">Finans / Tahsilat</h1>
+      <PageHeader title="Finans" subtitle="Aylık ders ücretleri ve tahsilat" />
 
-      <div className="mt-4 flex items-center justify-between">
+      <div className="flex items-center justify-between rounded-2xl bg-white p-1.5 shadow-card">
         <button
           onClick={() =>
             setMonthDate(new Date(monthDate.getFullYear(), monthDate.getMonth() - 1, 1))
           }
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-[#1e2a40]"
+          className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-[#241f33]"
           aria-label="Önceki ay"
         >
           <ChevronLeft size={18} />
         </button>
         <button
           onClick={() => setMonthDate(new Date())}
-          className="rounded-lg px-3 py-1.5 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-[#1e2a40]"
+          className="rounded-xl px-3 py-1.5 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-[#241f33]"
         >
           {MONTH_NAMES[monthDate.getMonth()]} {monthDate.getFullYear()}
         </button>
@@ -100,7 +100,7 @@ export default function FinancePage() {
           onClick={() =>
             setMonthDate(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1))
           }
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-[#1e2a40]"
+          className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-[#241f33]"
           aria-label="Sonraki ay"
         >
           <ChevronRight size={18} />

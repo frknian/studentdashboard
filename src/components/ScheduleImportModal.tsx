@@ -330,12 +330,12 @@ export default function ScheduleImportModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-      <div className="flex flex-col w-full max-w-3xl rounded-2xl bg-white shadow-2xl dark:bg-slate-900 border border-slate-100 dark:border-slate-800 max-h-[92vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex animate-fade-in items-end justify-center bg-slate-950/60 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="flex w-full max-w-3xl animate-sheet-up flex-col overflow-hidden rounded-t-[28px] bg-white pb-[env(safe-area-inset-bottom)] shadow-float max-h-[94dvh] sm:animate-fade-up sm:rounded-[28px] sm:pb-0">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 p-4 sm:p-5 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
               <Sparkles size={20} />
             </div>
             <div>
@@ -349,7 +349,7 @@ export default function ScheduleImportModal({
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
           >
             <X size={20} />
           </button>
@@ -358,7 +358,7 @@ export default function ScheduleImportModal({
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
           {/* Öğrenci ve Hedef Ayarları */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 dark:bg-slate-800/50 dark:border-slate-700">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 dark:bg-slate-800/50 dark:border-slate-700">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Hedef Öğrenci
@@ -375,7 +375,7 @@ export default function ScheduleImportModal({
                 {dateRangeInfo ? "Program Tarih Kapsamı" : "Program Başlangıç Haftası"}
               </label>
               {dateRangeInfo ? (
-                <div className="rounded-xl border border-indigo-200 bg-indigo-50/80 p-2 text-xs text-indigo-950 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200">
+                <div className="rounded-2xl border border-indigo-200 bg-indigo-50/80 p-2 text-xs text-indigo-950 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200">
                   <div className="flex items-center gap-1.5 font-bold">
                     <Calendar size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
                     <span>{formatTrDate(dateRangeInfo.first)} – {formatTrDate(dateRangeInfo.last)}</span>
@@ -390,7 +390,7 @@ export default function ScheduleImportModal({
                     <button
                       type="button"
                       onClick={() => setWeekOffset(0)}
-                      className={`flex-1 rounded-xl px-2.5 py-2 text-xs font-semibold border transition-all ${
+                      className={`flex-1 rounded-2xl px-2.5 py-2 text-xs font-semibold border transition-all ${
                         weekOffset === 0
                           ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
                           : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
@@ -401,7 +401,7 @@ export default function ScheduleImportModal({
                     <button
                       type="button"
                       onClick={() => setWeekOffset(1)}
-                      className={`flex-1 rounded-xl px-2.5 py-2 text-xs font-semibold border transition-all ${
+                      className={`flex-1 rounded-2xl px-2.5 py-2 text-xs font-semibold border transition-all ${
                         weekOffset === 1
                           ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
                           : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
@@ -425,7 +425,7 @@ export default function ScheduleImportModal({
                 <button
                   type="button"
                   onClick={() => setImportMode("STUDY_PLAN")}
-                  className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all ${
+                  className={`flex flex-col items-start p-2.5 rounded-2xl border text-left transition-all ${
                     importMode === "STUDY_PLAN"
                       ? "bg-purple-50 border-purple-500 text-purple-900 dark:bg-purple-950/40 dark:border-purple-500 dark:text-purple-200"
                       : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
@@ -443,7 +443,7 @@ export default function ScheduleImportModal({
                 <button
                   type="button"
                   onClick={() => setImportMode("LESSONS")}
-                  className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all ${
+                  className={`flex flex-col items-start p-2.5 rounded-2xl border text-left transition-all ${
                     importMode === "LESSONS"
                       ? "bg-blue-50 border-blue-500 text-blue-900 dark:bg-blue-950/40 dark:border-blue-500 dark:text-blue-200"
                       : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
@@ -461,7 +461,7 @@ export default function ScheduleImportModal({
                 <button
                   type="button"
                   onClick={() => setImportMode("BOTH")}
-                  className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all ${
+                  className={`flex flex-col items-start p-2.5 rounded-2xl border text-left transition-all ${
                     importMode === "BOTH"
                       ? "bg-emerald-50 border-emerald-500 text-emerald-900 dark:bg-emerald-950/40 dark:border-emerald-500 dark:text-emerald-200"
                       : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
@@ -495,14 +495,14 @@ export default function ScheduleImportModal({
 
               {/* Seçili Dosya Kartı */}
               {file && (
-                <div className="flex items-center justify-between rounded-xl bg-indigo-50/70 p-3 text-xs dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
+                <div className="flex items-center justify-between rounded-2xl bg-indigo-50/70 p-3 text-xs dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
                   <div className="flex items-center gap-2 truncate pr-2">
                     <FileText size={18} className="text-indigo-600 shrink-0 dark:text-indigo-400" />
                     <div className="truncate">
                       <p className="font-bold text-slate-800 dark:text-slate-100 truncate">
                         {file.name}
                       </p>
-                      <p className="text-[10px] text-slate-500">
+                      <p className="text-[11px] text-slate-500">
                         {(file.size / 1024).toFixed(0)} KB
                       </p>
                     </div>
@@ -511,7 +511,7 @@ export default function ScheduleImportModal({
                     type="button"
                     disabled={analyzing}
                     onClick={() => handleFileSelected(file)}
-                    className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shrink-0 shadow-xs text-xs"
+                    className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shrink-0 shadow-xs text-xs"
                   >
                     {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
                     {analyzing ? "Analiz Ediliyor..." : "Yeniden Analiz Et"}
@@ -596,7 +596,7 @@ export default function ScheduleImportModal({
 
               {/* Gemini API Key Girişi */}
               {showApiKeyInput && (
-                <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs dark:bg-amber-950/30 dark:border-amber-900/40">
+                <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-xs dark:bg-amber-950/30 dark:border-amber-900/40">
                   <label className="block font-bold text-amber-900 dark:text-amber-200 mb-1">
                     Google Gemini API Anahtarı (Fotoğraf ve Görselleri Okumak İçin)
                   </label>
@@ -606,7 +606,7 @@ export default function ScheduleImportModal({
                       placeholder="AIzaSy..."
                       value={geminiApiKey}
                       onChange={(e) => handleSaveApiKey(e.target.value)}
-                      className="flex-1 rounded-lg border border-amber-300 p-2 text-xs outline-none bg-white dark:bg-slate-900 dark:border-amber-800"
+                      className="flex-1 rounded-xl border border-amber-300 p-2 text-xs outline-none bg-white dark:bg-slate-900 dark:border-amber-800"
                     />
                     <button
                       type="button"
@@ -620,7 +620,7 @@ export default function ScheduleImportModal({
                           fileInputRef.current?.click();
                         }
                       }}
-                      className="rounded-lg bg-amber-600 px-3 py-2 font-semibold text-white hover:bg-amber-700 disabled:opacity-50 shrink-0 transition-colors shadow-xs text-xs flex items-center gap-1.5"
+                      className="rounded-xl bg-amber-600 px-3 py-2 font-semibold text-white hover:bg-amber-700 disabled:opacity-50 shrink-0 transition-colors shadow-xs text-xs flex items-center gap-1.5"
                     >
                       {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
                       {file ? "Kaydet & Analiz Et" : "Kaydet"}
@@ -636,7 +636,7 @@ export default function ScheduleImportModal({
 
           {/* Hata Mesajı */}
           {error && (
-            <div className="flex items-start gap-2.5 rounded-xl bg-rose-50 p-3.5 text-xs text-rose-700 dark:bg-rose-950/40 dark:text-rose-400">
+            <div className="flex items-start gap-2.5 rounded-2xl bg-rose-50 p-3.5 text-xs text-rose-700 dark:bg-rose-950/40 dark:text-rose-400">
               <AlertCircle size={16} className="shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="font-semibold">Uyarı</p>
@@ -646,7 +646,7 @@ export default function ScheduleImportModal({
                     type="button"
                     disabled={analyzing}
                     onClick={() => handleFileSelected(file)}
-                    className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors shadow-xs"
+                    className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors shadow-xs"
                   >
                     {analyzing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
                     Tekrar Dene
@@ -658,7 +658,7 @@ export default function ScheduleImportModal({
 
           {/* Başarı Mesajı */}
           {importSuccess && (
-            <div className="flex items-center gap-2.5 rounded-xl bg-emerald-50 p-3.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+            <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-50 p-3.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
               <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400" />
               <span>{importSuccess}</span>
             </div>
@@ -669,7 +669,7 @@ export default function ScheduleImportModal({
             <div className="space-y-3">
               {/* Eğer Görsel Yüklendiyse Yan Yana Göster */}
               {imagePreview && (
-                <div className="rounded-xl border border-slate-200 p-2.5 bg-slate-50 dark:bg-slate-800/40 dark:border-slate-700">
+                <div className="rounded-2xl border border-slate-200 p-2.5 bg-slate-50 dark:bg-slate-800/40 dark:border-slate-700">
                   <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
                     <ImageIcon size={13} className="text-indigo-600" />
                     Referans Ders Programı Fotoğrafınız:
@@ -678,7 +678,7 @@ export default function ScheduleImportModal({
                   <img
                     src={imagePreview}
                     alt="Referans Program"
-                    className="max-h-48 w-full rounded-lg object-contain bg-black/5"
+                    className="max-h-48 w-full rounded-xl object-contain bg-black/5"
                   />
                 </div>
               )}
@@ -696,7 +696,7 @@ export default function ScheduleImportModal({
                   <button
                     type="button"
                     onClick={handleAddItem}
-                    className="flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
+                    className="flex items-center gap-1 rounded-xl bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
                   >
                     <Plus size={14} /> Yeni Ders Ekle
                   </button>
@@ -711,7 +711,7 @@ export default function ScheduleImportModal({
               </div>
 
               {/* Tablo */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden dark:border-slate-800 max-h-72 overflow-y-auto">
+              <div className="border border-slate-200 rounded-2xl overflow-hidden dark:border-slate-800 max-h-72 overflow-y-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 dark:bg-slate-800/80 sticky top-0 border-b border-slate-200 dark:border-slate-800 text-slate-500">
                     <tr>
@@ -733,12 +733,12 @@ export default function ScheduleImportModal({
                               type="date"
                               value={item.date || ""}
                               onChange={(e) => handleDateChange(idx, e.target.value)}
-                              className="rounded-lg border border-slate-200 p-1 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
+                              className="rounded-xl border border-slate-200 p-1 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
                             />
                             <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold px-0.5">
                               <span>{item.day}</span>
                               {item.date && (
-                                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">Tarihli</span>
+                                <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">Tarihli</span>
                               )}
                             </div>
                           </div>
@@ -748,7 +748,7 @@ export default function ScheduleImportModal({
                             type="time"
                             value={item.time}
                             onChange={(e) => handleItemChange(idx, "time", e.target.value)}
-                            className="rounded-lg border border-slate-200 p-1.5 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
+                            className="rounded-xl border border-slate-200 p-1.5 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
                           />
                         </td>
                         <td className="p-2">
@@ -758,7 +758,7 @@ export default function ScheduleImportModal({
                             onChange={(e) =>
                               handleItemChange(idx, "durationMinutes", parseInt(e.target.value, 10) || 60)
                             }
-                            className="w-16 rounded-lg border border-slate-200 p-1.5 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
+                            className="w-16 rounded-xl border border-slate-200 p-1.5 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
                           />
                         </td>
                         <td className="p-2">
@@ -767,7 +767,7 @@ export default function ScheduleImportModal({
                             value={item.subject}
                             onChange={(e) => handleItemChange(idx, "subject", e.target.value)}
                             placeholder="Ders Adı"
-                            className="w-full rounded-lg border border-slate-200 p-1.5 text-xs bg-white dark:bg-slate-900 dark:border-slate-700 font-semibold"
+                            className="w-full rounded-xl border border-slate-200 p-1.5 text-xs bg-white dark:bg-slate-900 dark:border-slate-700 font-semibold"
                           />
                         </td>
                         <td className="p-2">
@@ -776,7 +776,7 @@ export default function ScheduleImportModal({
                             value={item.topic || ""}
                             onChange={(e) => handleItemChange(idx, "topic", e.target.value)}
                             placeholder="Konu / Hedef (Opsiyonel)"
-                            className="w-full rounded-lg border border-slate-200 p-1.5 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
+                            className="w-full rounded-xl border border-slate-200 p-1.5 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
                           />
                         </td>
                         <td className="p-2">
@@ -787,7 +787,7 @@ export default function ScheduleImportModal({
                               handleItemChange(idx, "targetQuestions", parseInt(e.target.value, 10) || 0)
                             }
                             placeholder="0"
-                            className="w-14 rounded-lg border border-slate-200 p-1.5 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
+                            className="w-14 rounded-xl border border-slate-200 p-1.5 text-xs bg-white dark:bg-slate-900 dark:border-slate-700"
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -814,7 +814,7 @@ export default function ScheduleImportModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300"
+            className="rounded-2xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300"
           >
             Kapat
           </button>
@@ -824,7 +824,7 @@ export default function ScheduleImportModal({
               type="button"
               onClick={handleImport}
               disabled={importing || parsedItems.length === 0}
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 disabled:opacity-50 transition-all"
+              className="flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 disabled:opacity-50 transition-all"
             >
               {importing ? (
                 <Loader2 size={15} className="animate-spin" />
